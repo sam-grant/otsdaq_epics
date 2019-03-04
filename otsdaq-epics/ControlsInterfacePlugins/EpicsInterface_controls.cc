@@ -1,5 +1,6 @@
-#include <iostream>
-#include "EpicsInterface.h"
+#include "otsdaq-core/Macros/ControlsPluginMacros.h"
+#include "otsdaq-epics/ControlsInterfacePlugins/EpicsInterface.h"
+
 #include "alarm.h"  //Holds strings that we can use to access the alarm status, severity, and parameters
 //#include "/mu2e/ups/epics/v3_15_4/Linux64bit+2.6-2.12-e10/include/alarm.h"
 //#include "alarmString.h"
@@ -20,7 +21,12 @@
 
 using namespace ots;
 
-EpicsInterface::EpicsInterface()
+EpicsInterface::EpicsInterface(
+    const std::string&       interfaceUID,
+    const ConfigurationTree& theXDAQContextConfigTree,
+    const std::string&       controlsConfigurationPath)
+: ControlsVInterface(
+          interfaceUID, theXDAQContextConfigTree, controlsConfigurationPath)
 {
 	// this allows for handlers to happen "asynchronously"
 	SEVCHK(ca_context_create(ca_enable_preemptive_callback),
@@ -939,4 +945,6 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 	return s;
 }
 
-DEFINE_OTS_MONITOR(EpicsInterface)
+DEFINE_OTS_CONTROLS(EpicsInterface)
+
+

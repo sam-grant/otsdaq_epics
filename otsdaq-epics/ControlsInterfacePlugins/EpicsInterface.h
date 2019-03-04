@@ -87,7 +87,10 @@ struct PVInfo
 class EpicsInterface : public ControlsVInterface
 {
   public:
-	EpicsInterface();
+	EpicsInterface(
+	    const std::string&       interfaceUID,
+	    const ConfigurationTree& theXDAQContextConfigTree,
+	    const std::string&       controlsConfigurationPath);
 	~EpicsInterface();
 
 	void initialize();
