@@ -38,7 +38,7 @@ EpicsInterface::~EpicsInterface() { destroy(); }
 
 void EpicsInterface::destroy()
 {
-	// std::cout << "mapOfPVInfo_.size() = " << mapOfPVInfo_.size() << std::endl;
+	// __GEN_COUT__ << "mapOfPVInfo_.size() = " << mapOfPVInfo_.size() << __E__;
 	for(auto it = mapOfPVInfo_.begin(); it != mapOfPVInfo_.end(); it++)
 	{
 		cancelSubscriptionToChannel(it->first);
@@ -48,7 +48,7 @@ void EpicsInterface::destroy()
 		mapOfPVInfo_.erase(it);
 	}
 
-	// std::cout << "mapOfPVInfo_.size() = " << mapOfPVInfo_.size() << std::endl;
+	// __GEN_COUT__ << "mapOfPVInfo_.size() = " << mapOfPVInfo_.size() << __E__;
 	SEVCHK(ca_poll(), "EpicsInterface::destroy() : ca_poll");
 	return;
 }
@@ -82,7 +82,7 @@ void EpicsInterface::subscribe(std::string pvName)
 {
 	if(!checkIfPVExists(pvName))
 	{
-		std::cout << pvName << " doesn't exist!" << std::endl;
+		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
 	}
 	createChannel(pvName);
@@ -96,7 +96,7 @@ void EpicsInterface::subscribe(std::string pvName)
 //{"PVList" : ["Mu2e_BeamData_IOC/CurrentTime"]}
 void EpicsInterface::subscribeJSON(std::string pvList)
 {
-	// if(DEBUG){std::cout << pvList << std::endl;;}
+	// if(DEBUG){__GEN_COUT__ << pvList << __E__;;}
 
 	std::string JSON = "{\"PVList\" :";
 	std::string pvName;
@@ -108,9 +108,9 @@ void EpicsInterface::subscribeJSON(std::string pvList)
 			pvList = pvList.substr(pvList.find("\"") + 1,
 			                       std::string::npos);     // eliminate up to the next "
 			pvName = pvList.substr(0, pvList.find("\""));  //
-			// if(DEBUG){std::cout << "Read PV Name:  " << pvName << std::endl;}
+			// if(DEBUG){__GEN_COUT__ << "Read PV Name:  " << pvName << __E__;}
 			pvList = pvList.substr(pvList.find("\"") + 1, std::string::npos);
-			// if(DEBUG){std::cout << "pvList : " << pvList << std::endl;}
+			// if(DEBUG){__GEN_COUT__ << "pvList : " << pvList << __E__;}
 
 			if(checkIfPVExists(pvName))
 			{
@@ -121,8 +121,8 @@ void EpicsInterface::subscribeJSON(std::string pvList)
 			}
 			else if(DEBUG)
 			{
-				std::cout << pvName << " not found in file! Not subscribing!"
-				          << std::endl;
+				__GEN_COUT__ << pvName << " not found in file! Not subscribing!"
+				          << __E__;
 			}
 
 		} while(pvList.find(",") != std::string::npos);
@@ -135,7 +135,7 @@ void EpicsInterface::unsubscribe(std::string pvName)
 {
 	if(!checkIfPVExists(pvName))
 	{
-		std::cout << pvName << " doesn't exist!" << std::endl;
+		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
 	}
 
@@ -163,7 +163,7 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 		case DBR_CTRL_CHAR:
 			if(true)
 			{
-				std::cout << "Response Type: DBR_CTRL_CHAR" << std::endl;
+				__COUT__ << "Response Type: DBR_CTRL_CHAR" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVControlValueToRecord(
@@ -174,7 +174,7 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 		case DBF_DOUBLE:
 			if(DEBUG)
 			{
-				std::cout << "Response Type: DBR_DOUBLE" << std::endl;
+				__COUT__ << "Response Type: DBR_DOUBLE" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVValueToRecord(
@@ -185,65 +185,65 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 		case DBR_STS_STRING:
 			if(DEBUG)
 			{
-				std::cout << "Response Type: DBR_STS_STRING" << std::endl;
+				__COUT__ << "Response Type: DBR_STS_STRING" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVAlertToQueue(ca_name(eha.chid),
 			                          epicsAlarmConditionStrings[pBuf->sstrval.status],
 			                          epicsAlarmSeverityStrings[pBuf->sstrval.severity]);
 			/*if(DEBUG)
-{
-printf("current %s:\n", eha.count > 1?"values":"value");
-for (i = 0; i < eha.count; i++)
-{
-printf("%s\t", *(&(pBuf->sstrval.value) + i));
-if ((i+1)%6 == 0) printf("\n");
-}
-printf("\n");
-}*/
+			{
+			printf("current %s:\n", eha.count > 1?"values":"value");
+			for (i = 0; i < eha.count; i++)
+			{
+			printf("%s\t", *(&(pBuf->sstrval.value) + i));
+			if ((i+1)%6 == 0) printf("\n");
+			}
+			printf("\n");
+			}*/
 			break;
 		case DBR_STS_SHORT:
 			if(DEBUG)
 			{
-				std::cout << "Response Type: DBR_STS_SHORT" << std::endl;
+				__COUT__ << "Response Type: DBR_STS_SHORT" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVAlertToQueue(ca_name(eha.chid),
 			                          epicsAlarmConditionStrings[pBuf->sshrtval.status],
 			                          epicsAlarmSeverityStrings[pBuf->sshrtval.severity]);
 			/*if(DEBUG)
-{
-printf("current %s:\n", eha.count > 1?"values":"value");
-for (i = 0; i < eha.count; i++){
-printf("%-10d", *(&(pBuf->sshrtval.value) + i));
-if ((i+1)%8 == 0) printf("\n");
-}
-printf("\n");
-}*/
+			{
+			printf("current %s:\n", eha.count > 1?"values":"value");
+			for (i = 0; i < eha.count; i++){
+			printf("%-10d", *(&(pBuf->sshrtval.value) + i));
+			if ((i+1)%8 == 0) printf("\n");
+			}
+			printf("\n");
+			}*/
 			break;
 		case DBR_STS_FLOAT:
 			if(DEBUG)
 			{
-				std::cout << "Response Type: DBR_STS_FLOAT" << std::endl;
+				__COUT__ << "Response Type: DBR_STS_FLOAT" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVAlertToQueue(ca_name(eha.chid),
 			                          epicsAlarmConditionStrings[pBuf->sfltval.status],
 			                          epicsAlarmSeverityStrings[pBuf->sfltval.severity]);
 			/*if(DEBUG)
-{
-printf("current %s:\n", eha.count > 1?"values":"value");
-for (i = 0; i < eha.count; i++){
-printf("-10.4f", *(&(pBuf->sfltval.value) + i));
-if ((i+1)%8 == 0) printf("\n");
-}
-printf("\n");
-}*/
+			{
+			printf("current %s:\n", eha.count > 1?"values":"value");
+			for (i = 0; i < eha.count; i++){
+			printf("-10.4f", *(&(pBuf->sfltval.value) + i));
+			if ((i+1)%8 == 0) printf("\n");
+			}
+			printf("\n");
+			}*/
 			break;
 		case DBR_STS_ENUM:
 			if(DEBUG)
 			{
-				std::cout << "Response Type: DBR_STS_ENUM" << std::endl;
+				__COUT__ << "Response Type: DBR_STS_ENUM" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVAlertToQueue(ca_name(eha.chid),
@@ -261,7 +261,7 @@ printf("\n");
 		case DBR_STS_CHAR:
 			if(DEBUG)
 			{
-				std::cout << "Response Type: DBR_STS_CHAR" << std::endl;
+				__COUT__ << "Response Type: DBR_STS_CHAR" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVAlertToQueue(ca_name(eha.chid),
@@ -280,7 +280,7 @@ printf("\n");
 		case DBR_STS_LONG:
 			if(DEBUG)
 			{
-				std::cout << "Response Type: DBR_STS_LONG" << std::endl;
+				__COUT__ << "Response Type: DBR_STS_LONG" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVAlertToQueue(ca_name(eha.chid),
@@ -299,7 +299,7 @@ printf("\n");
 		case DBR_STS_DOUBLE:
 			if(DEBUG)
 			{
-				std::cout << "Response Type: DBR_STS_DOUBLE" << std::endl;
+				__COUT__ << "Response Type: DBR_STS_DOUBLE" << __E__;
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVAlertToQueue(ca_name(eha.chid),
@@ -319,9 +319,9 @@ printf("\n");
 			{
 				if(DEBUG)
 				{
-					std::cout << " EpicsInterface::eventCallback: PV Name = "
-					          << ca_name(eha.chid) << std::endl;
-					std::cout << (char*)eha.dbr << std::endl;
+					__COUT__ << " EpicsInterface::eventCallback: PV Name = "
+					          << ca_name(eha.chid) << __E__;
+					__COUT__ << (char*)eha.dbr << __E__;
 				}
 				((EpicsInterface*)eha.usr)
 				    ->writePVValueToRecord(
@@ -341,7 +341,7 @@ printf("\n");
 
 void EpicsInterface::staticChannelCallbackHandler(struct connection_handler_args cha)
 {
-	std::cout << "webClientChannelCallbackHandler" << std::endl;
+	__COUT__ << "webClientChannelCallbackHandler" << __E__;
 
 	((PVHandlerParameters*)ca_puser(cha.chid))->webClient->channelCallbackHandler(cha);
 	return;
@@ -352,7 +352,7 @@ void EpicsInterface::channelCallbackHandler(struct connection_handler_args& cha)
 	std::string pv = ((PVHandlerParameters*)ca_puser(cha.chid))->pvName;
 	if(cha.op == CA_OP_CONN_UP)
 	{
-		std::cout << pv << cha.chid << " connected! " << std::endl;
+		__GEN_COUT__ << pv << cha.chid << " connected! " << __E__;
 
 		mapOfPVInfo_.find(pv)->second->channelType = ca_field_type(cha.chid);
 		readPVRecord(pv);
@@ -363,7 +363,7 @@ ca_element_count(cha.chid), cha.chid, eventCallback, this); SEVCHK(status_,
 "ca_array_get_callback");*/
 	}
 	else
-		std::cout << pv << " disconnected!" << std::endl;
+		__GEN_COUT__ << pv << " disconnected!" << __E__;
 
 	return;
 }
@@ -372,8 +372,8 @@ bool EpicsInterface::checkIfPVExists(std::string pvName)
 {
 	if(DEBUG)
 	{
-		std::cout << "EpicsInterface::checkIfPVExists(): PV Info Map Length is "
-		          << mapOfPVInfo_.size() << std::endl;
+		__GEN_COUT__ << "EpicsInterface::checkIfPVExists(): PV Info Map Length is "
+		          << mapOfPVInfo_.size() << __E__;
 	}
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
@@ -393,14 +393,20 @@ void EpicsInterface::loadListOfPVs()
 	// read file
 	// for each line in file
 	std::string pv_list_file = PV_FILE_NAME;
-	std::cout << pv_list_file << std::endl;
+	__GEN_COUTV__(pv_list_file);	
+	
 	std::ifstream infile(pv_list_file);
-	std::cout << "Reading file" << std::endl;
+	if(!infile.is_open())
+	{
+		__GEN_SS__ << "Failed to open PV list file: '" << pv_list_file << "'" << __E__;
+		__GEN_SS_THROW__;
+	}
+	__GEN_COUT__ << "Reading file" << __E__;
 
 	// make map of pvname -> PVInfo
 	for(std::string line; getline(infile, line);)
 	{
-		std::cout << line << std::endl;
+		__GEN_COUT__ << line << __E__;
 		mapOfPVInfo_[line] = new PVInfo(DBR_STRING);
 	}
 
@@ -419,7 +425,7 @@ void EpicsInterface::loadListOfPVs()
 		getControlValues(pv.first);
 	}
 
-	std::cout << "Finished reading file and subscribing to pvs!" << std::endl;
+	__GEN_COUT__ << "Finished reading file and subscribing to pvs!" << __E__;
 	return;
 }
 
@@ -427,11 +433,11 @@ void EpicsInterface::getControlValues(std::string pvName)
 {
 	if(true)
 	{
-		std::cout << "EpicsInterface::getControlValues(" << pvName << ")" << std::endl;
+		__GEN_COUT__ << "EpicsInterface::getControlValues(" << pvName << ")" << __E__;
 	}
 	if(!checkIfPVExists(pvName))
 	{
-		std::cout << pvName << " doesn't exist!" << std::endl;
+		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
 	}
 
@@ -449,11 +455,11 @@ void EpicsInterface::createChannel(std::string pvName)
 {
 	if(!checkIfPVExists(pvName))
 	{
-		std::cout << pvName << " doesn't exist!" << std::endl;
+		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
 	}
-	std::cout << "Trying to create channel to " << pvName << ":"
-	          << mapOfPVInfo_.find(pvName)->second->channelID << std::endl;
+	__GEN_COUT__ << "Trying to create channel to " << pvName << ":"
+	          << mapOfPVInfo_.find(pvName)->second->channelID << __E__;
 
 	if(mapOfPVInfo_.find(pvName)->second != NULL)  // Check to see if the pvName
 	                                               // maps to a null pointer so we
@@ -467,16 +473,16 @@ void EpicsInterface::createChannel(std::string pvName)
 			{
 				if(DEBUG)
 				{
-					std::cout << "Channel to " << pvName << " already exists!"
-					          << std::endl;
+					__GEN_COUT__ << "Channel to " << pvName << " already exists!"
+					          << __E__;
 				}
 				return;
 			}
 			if(DEBUG)
 			{
-				std::cout << "Channel to " << pvName
+				__GEN_COUT__ << "Channel to " << pvName
 				          << " exists, but is not connected! Destroying current channel."
-				          << std::endl;
+				          << __E__;
 			}
 			destroyChannel(pvName);
 		}
@@ -496,8 +502,8 @@ void EpicsInterface::createChannel(std::string pvName)
 	                         0,
 	                         &(mapOfPVInfo_.find(pvName)->second->channelID)),
 	       "EpicsInterface::createChannel() : ca_create_channel");
-	std::cout << "channelID: " << pvName << mapOfPVInfo_.find(pvName)->second->channelID
-	          << std::endl;
+	__GEN_COUT__ << "channelID: " << pvName << mapOfPVInfo_.find(pvName)->second->channelID
+	          << __E__;
 	SEVCHK(ca_poll(), "EpicsInterface::createChannel() : ca_poll");
 
 	return;
@@ -515,7 +521,7 @@ void EpicsInterface::destroyChannel(std::string pvName)
 				mapOfPVInfo_.find(pvName)->second->channelID = NULL;
 				if(DEBUG)
 				{
-					std::cout << "Killed channel to " << pvName << std::endl;
+					__GEN_COUT__ << "Killed channel to " << pvName << __E__;
 				}
 			}
 			SEVCHK(ca_poll(), "EpicsInterface::destroyChannel() : ca_poll");
@@ -524,7 +530,7 @@ void EpicsInterface::destroyChannel(std::string pvName)
 		{
 			if(DEBUG)
 			{
-				std::cout << "No channel to " << pvName << " exists" << std::endl;
+				__GEN_COUT__ << "No channel to " << pvName << " exists" << __E__;
 			}
 		}
 	}
@@ -535,13 +541,13 @@ void EpicsInterface::subscribeToChannel(std::string pvName, chtype subscriptionT
 {
 	if(!checkIfPVExists(pvName))
 	{
-		std::cout << pvName << " doesn't exist!" << std::endl;
+		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
 	}
 	if(DEBUG)
 	{
-		std::cout << "Trying to subscribe to " << pvName << ":"
-		          << mapOfPVInfo_.find(pvName)->second->channelID << std::endl;
+		__GEN_COUT__ << "Trying to subscribe to " << pvName << ":"
+		          << mapOfPVInfo_.find(pvName)->second->channelID << __E__;
 	}
 
 	if(mapOfPVInfo_.find(pvName)->second != NULL)  // Check to see if the pvName
@@ -553,7 +559,7 @@ void EpicsInterface::subscribeToChannel(std::string pvName, chtype subscriptionT
 		{
 			if(DEBUG)
 			{
-				std::cout << "Already subscribed to " << pvName << "!" << std::endl;
+				__GEN_COUT__ << "Already subscribed to " << pvName << "!" << __E__;
 			}
 			// FIXME No way to check if the event ID is valid
 			// Just cancel the subscription if it already exists?
@@ -577,9 +583,9 @@ void EpicsInterface::subscribeToChannel(std::string pvName, chtype subscriptionT
 	       "EpicsInterface::subscribeToChannel() : ca_create_subscription");
 	if(DEBUG)
 	{
-		std::cout << "EpicsInterface::subscribeToChannel: Created Subscription to "
+		__GEN_COUT__ << "EpicsInterface::subscribeToChannel: Created Subscription to "
 		          << mapOfPVInfo_.find(pvName)->first << "!\n"
-		          << std::endl;
+		          << __E__;
 	}
 	SEVCHK(ca_poll(), "EpicsInterface::subscribeToChannel() : ca_poll");
 
@@ -600,7 +606,7 @@ void EpicsInterface::cancelSubscriptionToChannel(std::string pvName)
 				mapOfPVInfo_.find(pvName)->second->eventID = NULL;
 				if(DEBUG)
 				{
-					std::cout << "Killed subscription to " << pvName << std::endl;
+					__GEN_COUT__ << "Killed subscription to " << pvName << __E__;
 				}
 			}
 			SEVCHK(ca_poll(), "EpicsInterface::cancelSubscriptionToChannel() : ca_poll");
@@ -609,12 +615,12 @@ void EpicsInterface::cancelSubscriptionToChannel(std::string pvName)
 		{
 			if(DEBUG)
 			{
-				std::cout << pvName << "does not have a subscription!" << std::endl;
+				__GEN_COUT__ << pvName << "does not have a subscription!" << __E__;
 			}
 		}
 	else
 	{
-		// std::cout << pvName << "does not have a subscription!" << std::endl;
+		// __GEN_COUT__ << pvName << "does not have a subscription!" << __E__;
 	}
 	//  SEVCHK(ca_flush_io(),"ca_flush_io");
 	return;
@@ -633,31 +639,31 @@ void EpicsInterface::writePVControlValueToRecord(std::string           pvName,
 {
 	if(DEBUG)
 	{
-		std::cout << "Reading Control Values from " << pvName << "!" << std::endl;
+		__GEN_COUT__ << "Reading Control Values from " << pvName << "!" << __E__;
 	}
 
 	if(!checkIfPVExists(pvName))
 	{
-		std::cout << pvName << " doesn't exist!" << std::endl;
+		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
 	}
 	mapOfPVInfo_.find(pvName)->second->settings = *pdata;
 
 	if(true)
 	{
-		std::cout << "status: " << pdata->status << std::endl;
-		std::cout << "severity: " << pdata->severity << std::endl;
-		std::cout << "units: " << pdata->units << std::endl;
-		std::cout << "upper disp limit: " << pdata->upper_disp_limit << std::endl;
-		std::cout << "lower disp limit: " << pdata->lower_disp_limit << std::endl;
-		std::cout << "upper alarm limit: " << pdata->upper_alarm_limit << std::endl;
-		std::cout << "upper warning limit: " << pdata->upper_warning_limit << std::endl;
-		std::cout << "lower warning limit: " << pdata->lower_warning_limit << std::endl;
-		std::cout << "lower alarm limit: " << pdata->lower_alarm_limit << std::endl;
-		std::cout << "upper control limit: " << pdata->upper_ctrl_limit << std::endl;
-		std::cout << "lower control limit: " << pdata->lower_ctrl_limit << std::endl;
-		std::cout << "RISC_pad: " << pdata->RISC_pad << std::endl;
-		std::cout << "Value: " << pdata->value << std::endl;
+		__GEN_COUT__ << "status: " << pdata->status << __E__;
+		__GEN_COUT__ << "severity: " << pdata->severity << __E__;
+		__GEN_COUT__ << "units: " << pdata->units << __E__;
+		__GEN_COUT__ << "upper disp limit: " << pdata->upper_disp_limit << __E__;
+		__GEN_COUT__ << "lower disp limit: " << pdata->lower_disp_limit << __E__;
+		__GEN_COUT__ << "upper alarm limit: " << pdata->upper_alarm_limit << __E__;
+		__GEN_COUT__ << "upper warning limit: " << pdata->upper_warning_limit << __E__;
+		__GEN_COUT__ << "lower warning limit: " << pdata->lower_warning_limit << __E__;
+		__GEN_COUT__ << "lower alarm limit: " << pdata->lower_alarm_limit << __E__;
+		__GEN_COUT__ << "upper control limit: " << pdata->upper_ctrl_limit << __E__;
+		__GEN_COUT__ << "lower control limit: " << pdata->lower_ctrl_limit << __E__;
+		__GEN_COUT__ << "RISC_pad: " << pdata->RISC_pad << __E__;
+		__GEN_COUT__ << "Value: " << pdata->value << __E__;
 	}
 	return;
 }
@@ -668,10 +674,10 @@ void EpicsInterface::writePVValueToRecord(std::string pvName, std::string pdata)
 
 	if(!checkIfPVExists(pvName))
 	{
-		std::cout << pvName << " doesn't exist!" << std::endl;
+		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
 	}
-	// std::cout << pdata << std::endl;
+	// __GEN_COUT__ << pdata << __E__;
 
 	PVInfo* pvInfo = mapOfPVInfo_.find(pvName)->second;
 
@@ -706,7 +712,7 @@ void EpicsInterface::writePVAlertToQueue(std::string pvName,
 {
 	if(!checkIfPVExists(pvName))
 	{
-		std::cout << pvName << " doesn't exist!" << std::endl;
+		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
 	}
 	PVAlerts alert(time(0), status, severity);
@@ -730,40 +736,40 @@ void EpicsInterface::readPVRecord(std::string pvName)
 
 void EpicsInterface::debugConsole(std::string pvName)
 {
-	std::cout << "==============================================================="
+	__GEN_COUT__ << "==============================================================="
 	             "==============="
-	          << std::endl;
+	          << __E__;
 	for(unsigned int it = 0; it < mapOfPVInfo_.find(pvName)->second->dataCache.size() - 1;
 	    it++)
 	{
 		if(it == mapOfPVInfo_.find(pvName)->second->mostRecentBufferIndex)
 		{
-			std::cout << "-----------------------------------------------------------"
+			__GEN_COUT__ << "-----------------------------------------------------------"
 			             "----------"
-			          << std::endl;
+			          << __E__;
 		}
-		std::cout << "Iteration: " << it << " | "
+		__GEN_COUT__ << "Iteration: " << it << " | "
 		          << mapOfPVInfo_.find(pvName)->second->mostRecentBufferIndex << " | "
-		          << mapOfPVInfo_.find(pvName)->second->dataCache[it].second << std::endl;
+		          << mapOfPVInfo_.find(pvName)->second->dataCache[it].second << __E__;
 		if(it == mapOfPVInfo_.find(pvName)->second->mostRecentBufferIndex)
 		{
-			std::cout << "-----------------------------------------------------------"
+			__GEN_COUT__ << "-----------------------------------------------------------"
 			             "----------"
-			          << std::endl;
+			          << __E__;
 		}
 	}
-	std::cout << "==============================================================="
+	__GEN_COUT__ << "==============================================================="
 	             "==============="
-	          << std::endl;
-	std::cout << "Status:     "
+	          << __E__;
+	__GEN_COUT__ << "Status:     "
 	          << " | " << mapOfPVInfo_.find(pvName)->second->alerts.size() << " | "
-	          << mapOfPVInfo_.find(pvName)->second->alerts.front().status << std::endl;
-	std::cout << "Severity:   "
+	          << mapOfPVInfo_.find(pvName)->second->alerts.front().status << __E__;
+	__GEN_COUT__ << "Severity:   "
 	          << " | " << mapOfPVInfo_.find(pvName)->second->alerts.size() << " | "
-	          << mapOfPVInfo_.find(pvName)->second->alerts.front().severity << std::endl;
-	std::cout << "==============================================================="
+	          << mapOfPVInfo_.find(pvName)->second->alerts.front().severity << __E__;
+	__GEN_COUT__ << "==============================================================="
 	             "==============="
-	          << std::endl;
+	          << __E__;
 
 	return;
 }
@@ -771,7 +777,7 @@ void EpicsInterface::popQueue(std::string pvName)
 {
 	if(DEBUG)
 	{
-		std::cout << "EpicsInterface::popQueue() " << std::endl;
+		__GEN_COUT__ << "EpicsInterface::popQueue() " << __E__;
 	}
 	mapOfPVInfo_.find(pvName)->second->alerts.pop();
 
@@ -785,7 +791,7 @@ void EpicsInterface::popQueue(std::string pvName)
 
 std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 {
-	std::cout << "void EpicsInterface::getCurrentValue() reached" << std::endl;
+	__GEN_COUT__ << "void EpicsInterface::getCurrentValue() reached" << __E__;
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
@@ -794,7 +800,7 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 
 		int index = pv->mostRecentBufferIndex;
 
-		std::cout << pv << index << std::endl;
+		__GEN_COUT__ << pv << index << __E__;
 
 		if(0 <= index && index < pv->circularBufferSize)
 		{
@@ -819,11 +825,11 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 		}
 		// Time, Value, Status, Severity
 
-		std::cout << "Index:    " << index << std::endl;
-		std::cout << "Time:     " << time << std::endl;
-		std::cout << "Value:    " << value << std::endl;
-		std::cout << "Status:   " << status << std::endl;
-		std::cout << "Severity: " << severity << std::endl;
+		__GEN_COUT__ << "Index:    " << index << __E__;
+		__GEN_COUT__ << "Time:     " << time << __E__;
+		__GEN_COUT__ << "Value:    " << value << __E__;
+		__GEN_COUT__ << "Status:   " << status << __E__;
+		__GEN_COUT__ << "Severity: " << severity << __E__;
 
 		if(pv->valueChange)
 		{
@@ -831,7 +837,7 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 		}
 		else
 		{
-			std::cout << pvName << " has no change" << std::endl;
+			__GEN_COUT__ << pvName << " has no change" << __E__;
 			time     = "NO_CHANGE";
 			value    = "";
 			status   = "";
@@ -844,8 +850,8 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 	}
 	else
 	{
-		std::cout << pvName << " was not found!" << std::endl;
-		std::cout << "Trying to resubscribe to " << pvName << std::endl;
+		__GEN_COUT__ << pvName << " was not found!" << __E__;
+		__GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
 		// subscribe(pvName);
 	}
 	std::array<std::string, 4> currentValues = {"PV Not Found", "NF", "N/a", "N/a"};
@@ -855,7 +861,7 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 
 std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 {
-	std::cout << "void EpicsInterface::getPVSettings() reached" << std::endl;
+	__GEN_COUT__ << "void EpicsInterface::getPVSettings() reached" << __E__;
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
@@ -905,23 +911,23 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 				//(reinterpret_cast<char*>(set->lower_ctrl_limit   ));
 				if(DEBUG)
 				{
-					std::cout << "Units              :    " << units << std::endl;
-					std::cout << "Upper Display Limit:    " << upperDisplayLimit
-					          << std::endl;
-					std::cout << "Lower Display Limit:    " << lowerDisplayLimit
-					          << std::endl;
-					std::cout << "Upper Alarm Limit  :    " << upperAlarmLimit
-					          << std::endl;
-					std::cout << "Upper Warning Limit:    " << upperWarningLimit
-					          << std::endl;
-					std::cout << "Lower Warning Limit:    " << lowerWarningLimit
-					          << std::endl;
-					std::cout << "Lower Alarm Limit  :    " << lowerAlarmLimit
-					          << std::endl;
-					std::cout << "Upper Control Limit:    " << upperControlLimit
-					          << std::endl;
-					std::cout << "Lower Control Limit:    " << lowerControlLimit
-					          << std::endl;
+					__GEN_COUT__ << "Units              :    " << units << __E__;
+					__GEN_COUT__ << "Upper Display Limit:    " << upperDisplayLimit
+					          << __E__;
+					__GEN_COUT__ << "Lower Display Limit:    " << lowerDisplayLimit
+					          << __E__;
+					__GEN_COUT__ << "Upper Alarm Limit  :    " << upperAlarmLimit
+					          << __E__;
+					__GEN_COUT__ << "Upper Warning Limit:    " << upperWarningLimit
+					          << __E__;
+					__GEN_COUT__ << "Lower Warning Limit:    " << lowerWarningLimit
+					          << __E__;
+					__GEN_COUT__ << "Lower Alarm Limit  :    " << lowerAlarmLimit
+					          << __E__;
+					__GEN_COUT__ << "Upper Control Limit:    " << upperControlLimit
+					          << __E__;
+					__GEN_COUT__ << "Lower Control Limit:    " << lowerControlLimit
+					          << __E__;
 				}
 			}
 
@@ -936,8 +942,8 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 	}
 	else
 	{
-		std::cout << pvName << " was not found!" << std::endl;
-		std::cout << "Trying to resubscribe to " << pvName << std::endl;
+		__GEN_COUT__ << pvName << " was not found!" << __E__;
+		__GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
 		subscribe(pvName);
 	}
 	std::array<std::string, 9> s = {
