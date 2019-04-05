@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <string>
 
-#include "otsdaq-core/ControlsCore/ControlsVInterface.h"
+#include "otsdaq-core/SlowControlsCore/SlowControlsVInterface.h"
 
 struct dbr_ctrl_char;
 
@@ -84,7 +84,7 @@ struct PVInfo
 	struct dbr_ctrl_char settings;
 };
 
-class EpicsInterface : public ControlsVInterface
+class EpicsInterface : public SlowControlsVInterface
 {
   public:
 	EpicsInterface(

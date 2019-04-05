@@ -1,4 +1,4 @@
-#include "otsdaq-core/Macros/ControlsPluginMacros.h"
+#include "otsdaq-core/Macros/SlowControlsPluginMacros.h"
 #include "otsdaq-epics/ControlsInterfacePlugins/EpicsInterface.h"
 
 #include "alarm.h"  //Holds strings that we can use to access the alarm status, severity, and parameters
@@ -25,7 +25,7 @@ EpicsInterface::EpicsInterface(
     const std::string&       interfaceUID,
     const ConfigurationTree& theXDAQContextConfigTree,
     const std::string&       controlsConfigurationPath)
-: ControlsVInterface(
+: SlowControlsVInterface(
           interfaceUID, theXDAQContextConfigTree, controlsConfigurationPath)
 {
 	// this allows for handlers to happen "asynchronously"
@@ -951,6 +951,6 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 	return s;
 }
 
-DEFINE_OTS_CONTROLS(EpicsInterface)
+DEFINE_OTS_SLOW_CONTROLS(EpicsInterface)
 
 

@@ -22,7 +22,7 @@ simple_plugin(EpicsInterface "controls"
 	 ${EPICS_CA}
 	 ${EPICS_COM}
 	 ${XDAQ_BASIC_LIB_LIST}	 
-	 ControlsCore
+	 SlowControlsCore
 	 PluginMakers
 	 $ENV{XERCES_C_LIB}/libxerces-c.so
   )
