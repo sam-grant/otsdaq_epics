@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string>
+#include <dirent.h>
 
 #include "otsdaq-core/SlowControlsCore/SlowControlsVInterface.h"
 

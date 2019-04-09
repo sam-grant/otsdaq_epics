@@ -1,6 +1,5 @@
 #include "otsdaq-core/Macros/SlowControlsPluginMacros.h"
 #include "otsdaq-epics/ControlsInterfacePlugins/EpicsInterface.h"
-
 #include "alarm.h"  //Holds strings that we can use to access the alarm status, severity, and parameters
 //#include "/mu2e/ups/epics/v3_15_4/Linux64bit+2.6-2.12-e10/include/alarm.h"
 //#include "alarmString.h"
@@ -15,10 +14,12 @@
 // -I$EPICS_BASE//include/os/Linux -I$EPICS_BASE/include/compiler/gcc -o
 // EpicsWebClient
 
+
 #define DEBUG false
 #define PV_FILE_NAME \
 	std::string(getenv("SERVICE_DATA_PATH")) + "/SlowControlsDashboardData/pv_list.dat";
-
+#define PV_CSV_DIR \
+	"/home/mu2edcs/mu2e-dcs/make_db/csv";
 using namespace ots;
 
 EpicsInterface::EpicsInterface(
@@ -63,6 +64,9 @@ void EpicsInterface::initialize()
 std::string EpicsInterface::getList(std::string format)
 {
 	std::string pvList;
+	pvList = "[\"None\"]";
+	std::cout << "SUCA: Returning pvList as: " << pvList << std::endl;
+	return pvList;
 
 	if(format == "JSON")
 	{
@@ -384,6 +388,24 @@ bool EpicsInterface::checkIfPVExists(std::string pvName)
 
 void EpicsInterface::loadListOfPVs()
 {
+	std::string pv_csv_dir_path = PV_CSV_DIR;
+	std::vector<std::string> files = std::vector <std::string>();
+	DIR *dp;
+    	struct dirent *dirp;
+    	if((dp  = opendir(pv_csv_dir_path.c_str())) == NULL) {
+        	std::cout << "Error  opening: " << pv_csv_dir_path << std::endl;
+        	return;
+    	}	
+
+    	while ((dirp = readdir(dp)) != NULL) {
+        	files.push_back(std::string(dirp->d_name));
+    	}
+    	closedir(dp);
+
+    	for (unsigned int i = 0;i < files.size();i++) {
+        	std::cout << files[i] << std::endl;
+	}
+	return;
 	// Initialize Channel Access
 	status_ = ca_task_initialize();
 	SEVCHK(status_, "EpicsInterface::loadListOfPVs() : Unable to initialize");
