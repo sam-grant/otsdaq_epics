@@ -64,19 +64,25 @@ void EpicsInterface::initialize()
 std::string EpicsInterface::getList(std::string format)
 {
 	std::string pvList;
-	pvList = "[\"None\"]";
-	std::cout << "SUCA: Returning pvList as: " << pvList << std::endl;
-	return pvList;
+	//pvList = "[\"None\"]";
+	//std::cout << "SUCA: Returning pvList as: " << pvList << std::endl;
+	//return pvList;
+	
+	__GEN_COUT__ << "Interface now retrieving pvList!";
 
 	if(format == "JSON")
 	{
+		__GEN_COUT__ << "Getting list in JSON format! There are " << mapOfPVInfo_.size() << " pv's.";
 		// pvList = "{\"PVList\" : [";
 		pvList = "[";
 		for(auto it = mapOfPVInfo_.begin(); it != mapOfPVInfo_.end(); it++)
+		{
 			pvList += "\"" + it->first + "\", ";
-
+			__GEN_COUT__ << it->first;
+		}
 		pvList.resize(pvList.size() - 2);
 		pvList += "]";  //}";
+		__GEN_COUT__ << pvList;
 		return pvList;
 	}
 	return pvList;
@@ -388,6 +394,7 @@ bool EpicsInterface::checkIfPVExists(std::string pvName)
 
 void EpicsInterface::loadListOfPVs()
 {
+	__GEN_COUT__ << "LOADING LIST OF PVS!!!!";
 	std::string pv_csv_dir_path = PV_CSV_DIR;
 	std::vector<std::string> files = std::vector <std::string>();
 	DIR *dp;
@@ -396,48 +403,88 @@ void EpicsInterface::loadListOfPVs()
         	std::cout << "Error  opening: " << pv_csv_dir_path << std::endl;
         	return;
     	}	
-
+	__GEN_COUT__ << "SSSUUCCCA1";
     	while ((dirp = readdir(dp)) != NULL) {
-        	files.push_back(std::string(dirp->d_name));
+		files.push_back(std::string(dirp->d_name));
     	}
     	closedir(dp);
+         __GEN_COUT__ << "SSSUUCCCA2";
 
     	for (unsigned int i = 0;i < files.size();i++) {
         	std::cout << files[i] << std::endl;
 	}
-	return;
+
+	__GEN_COUT__ << "SSSUUCCCA3" <<std::endl;
+	
 	// Initialize Channel Access
 	status_ = ca_task_initialize();
 	SEVCHK(status_, "EpicsInterface::loadListOfPVs() : Unable to initialize");
 	if(status_ != ECA_NORMAL)
 		exit(-1);
 
-	// read file
-	// for each line in file
-	std::string pv_list_file = PV_FILE_NAME;
-	__GEN_COUTV__(pv_list_file);	
+	//for each file
+	//int referenceLength = 0;
+	std::vector <std::string> csv_line;
+	std::string pv_name, cluster, category, system, sensor;
+	cluster = "Mu2e";
+	unsigned int i,j;
 	
-	std::ifstream infile(pv_list_file);
-	if(!infile.is_open())
+	//First two entries will be . & ..
+	for (i = 2; i < files.size(); i++) 
 	{
-		__GEN_SS__ << "Failed to open PV list file: '" << pv_list_file << "'" << __E__;
-		__GEN_SS_THROW__;
-	}
-	__GEN_COUT__ << "Reading file" << __E__;
 
-	// make map of pvname -> PVInfo
-	for(std::string line; getline(infile, line);)
-	{
-		__GEN_COUT__ << line << __E__;
-		mapOfPVInfo_[line] = new PVInfo(DBR_STRING);
+        	//std::cout << pv_csv_dir_path << "/" <<files[i] << std::endl;
+		std::string pv_list_file = pv_csv_dir_path + "/" + files[i];
+		__GEN_COUT__ << "Reading: " << pv_list_file << std::endl;
+
+		// read file
+		// for each line in file
+		//std::string pv_list_file = PV_FILE_NAME;
+		//__GEN_COUT__ << pv_list_file;	
+	
+		std::ifstream infile(pv_list_file);
+		if(!infile.is_open())
+		{
+			__GEN_SS__ << "Failed to open PV list file: '" << pv_list_file << "'" << __E__;
+			__GEN_SS_THROW__;
+		}
+		__GEN_COUT__ << "Reading file" << __E__;
+
+		// make map of pvname -> PVInfo
+		//Example line of csv
+ 		//CompStatus,daq01,fans_fastest_rpm,0,rpm,16e3,12e3,2e3,1e3,,,,Passive,,fans_fastest_rpm daq01
+		for(std::string line; getline(infile, line);)
+		{
+			__GEN_COUT__ << line << __E__;
+			csv_line.clear();	
+			std::istringstream ss(line);
+			std::string token;
+
+			while(std::getline(ss, token, ','))
+				csv_line.push_back(token);
+			if (csv_line.at(0)[0] != '#')
+			{	
+				category = csv_line.at(0);
+				system   = csv_line.at(1);
+				sensor   = csv_line.at(2);
+
+				pv_name = cluster + "_" + category + "_" + system + "/" + sensor;
+				__GEN_COUT__ << pv_name << __E__;
+				mapOfPVInfo_[pv_name] = new PVInfo(DBR_STRING);
+			}
+		}
+		 __GEN_COUT__ << "Finished reading: " << pv_list_file << __E__;
+
 	}
 
+	__GEN_COUT__ << "Here is our pv list!"  << __E__;
 	// subscribe for each pv
 	for(auto pv : mapOfPVInfo_)
 	{
+		__GEN_COUT__ << pv.first << __E__;
 		subscribe(pv.first);
 	}
-
+		
 	// channels are subscribed to by here.
 
 	// get parameters (e.g. HIHI("upper alarm") HI("upper warning") LOLO("lower
