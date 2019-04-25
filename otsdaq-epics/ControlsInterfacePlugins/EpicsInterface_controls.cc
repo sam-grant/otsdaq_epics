@@ -96,9 +96,9 @@ void EpicsInterface::subscribe(std::string pvName)
 		return;
 	}
 	createChannel(pvName);
-	sleep(1);
+	sleep(1); 	//what makes the console hang at startup
 	subscribeToChannel(pvName, mapOfPVInfo_.find(pvName)->second->channelType);
-	SEVCHK(ca_poll(), "EpicsInterface::subscribe() : ca_poll");
+	SEVCHK(ca_poll(), "EpicsInterface::subscribe() : ca_poll");   //print outs that handle takeover the console; can make our own error handler
 
 	return;
 }
@@ -402,19 +402,18 @@ void EpicsInterface::loadListOfPVs()
     	if((dp  = opendir(pv_csv_dir_path.c_str())) == NULL) {
         	std::cout << "Error  opening: " << pv_csv_dir_path << std::endl;
         	return;
-    	}	
-	__GEN_COUT__ << "SSSUUCCCA1";
+    	}
+	
     	while ((dirp = readdir(dp)) != NULL) {
 		files.push_back(std::string(dirp->d_name));
     	}
     	closedir(dp);
-         __GEN_COUT__ << "SSSUUCCCA2";
 
-    	for (unsigned int i = 0;i < files.size();i++) {
+    	/*	
+	for (unsigned int i = 0;i < files.size();i++) {
         	std::cout << files[i] << std::endl;
 	}
-
-	__GEN_COUT__ << "SSSUUCCCA3" <<std::endl;
+	*/
 	
 	// Initialize Channel Access
 	status_ = ca_task_initialize();
@@ -455,7 +454,7 @@ void EpicsInterface::loadListOfPVs()
  		//CompStatus,daq01,fans_fastest_rpm,0,rpm,16e3,12e3,2e3,1e3,,,,Passive,,fans_fastest_rpm daq01
 		for(std::string line; getline(infile, line);)
 		{
-			__GEN_COUT__ << line << __E__;
+			//__GEN_COUT__ << line << __E__;
 			csv_line.clear();	
 			std::istringstream ss(line);
 			std::string token;
@@ -469,7 +468,7 @@ void EpicsInterface::loadListOfPVs()
 				sensor   = csv_line.at(2);
 
 				pv_name = cluster + "_" + category + "_" + system + "/" + sensor;
-				__GEN_COUT__ << pv_name << __E__;
+				//__GEN_COUT__ << pv_name << __E__;
 				mapOfPVInfo_[pv_name] = new PVInfo(DBR_STRING);
 			}
 		}
@@ -571,10 +570,10 @@ void EpicsInterface::createChannel(std::string pvName)
 	                         0,
 	                         &(mapOfPVInfo_.find(pvName)->second->channelID)),
 	       "EpicsInterface::createChannel() : ca_create_channel");
-	__GEN_COUT__ << "channelID: " << pvName << mapOfPVInfo_.find(pvName)->second->channelID
-	          << __E__;
-	SEVCHK(ca_poll(), "EpicsInterface::createChannel() : ca_poll");
+	__GEN_COUT__ << "channelID: " << pvName << mapOfPVInfo_.find(pvName)->second->channelID	<< __E__;
+	SEVCHK(ca_poll(), "EpicsInterface::createChannel() : ca_poll"); //This routine will perform outstanding channel access background activity and then return.
 
+	
 	return;
 }
 void EpicsInterface::destroyChannel(std::string pvName)
@@ -900,7 +899,7 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 		__GEN_COUT__ << "Status:   " << status << __E__;
 		__GEN_COUT__ << "Severity: " << severity << __E__;
 
-		if(pv->valueChange)
+	/*	if(pv->valueChange)
 		{
 			pv->valueChange = false;
 		}
@@ -912,7 +911,7 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 			status   = "";
 			severity = "";
 		}
-
+	*/
 		std::array<std::string, 4> currentValues = {time, value, status, severity};
 
 		return currentValues;
