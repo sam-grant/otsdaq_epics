@@ -89,6 +89,7 @@ class EpicsInterface : public SlowControlsVInterface
 {
   public:
 	EpicsInterface(
+	    const std::string&       pluginType,
 	    const std::string&       interfaceUID,
 	    const ConfigurationTree& theXDAQContextConfigTree,
 	    const std::string&       controlsConfigurationPath);

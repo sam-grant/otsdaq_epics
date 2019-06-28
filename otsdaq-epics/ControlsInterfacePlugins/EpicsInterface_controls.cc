@@ -23,11 +23,12 @@
 using namespace ots;
 
 EpicsInterface::EpicsInterface(
+    const std::string&       pluginType,
     const std::string&       interfaceUID,
     const ConfigurationTree& theXDAQContextConfigTree,
     const std::string&       controlsConfigurationPath)
 : SlowControlsVInterface(
-          interfaceUID, theXDAQContextConfigTree, controlsConfigurationPath)
+          pluginType, interfaceUID, theXDAQContextConfigTree, controlsConfigurationPath)
 {
 	// this allows for handlers to happen "asynchronously"
 	SEVCHK(ca_context_create(ca_enable_preemptive_callback),
@@ -56,6 +57,9 @@ void EpicsInterface::destroy()
 
 void EpicsInterface::initialize()
 {
+		__GEN_COUT__ << "Epics Interface now initializing!";
+
+
 	destroy();
 	loadListOfPVs();
 
@@ -68,7 +72,7 @@ std::string EpicsInterface::getList(std::string format)
 	//std::cout << "SUCA: Returning pvList as: " << pvList << std::endl;
 	//return pvList;
 	
-	__GEN_COUT__ << "Interface now retrieving pvList!";
+	__GEN_COUT__ << "Epics Interface now retrieving pvList!";
 
 	if(format == "JSON")
 	{
@@ -78,11 +82,11 @@ std::string EpicsInterface::getList(std::string format)
 		for(auto it = mapOfPVInfo_.begin(); it != mapOfPVInfo_.end(); it++)
 		{
 			pvList += "\"" + it->first + "\", ";
-			__GEN_COUT__ << it->first;
+			//__GEN_COUT__ << it->first << __E__;
 		}
 		pvList.resize(pvList.size() - 2);
 		pvList += "]";  //}";
-		__GEN_COUT__ << pvList;
+		__GEN_COUT__ << pvList << __E__;
 		return pvList;
 	}
 	return pvList;
