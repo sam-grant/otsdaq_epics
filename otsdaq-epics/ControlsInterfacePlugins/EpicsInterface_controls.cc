@@ -1,4 +1,4 @@
-#include "otsdaq-core/Macros/SlowControlsPluginMacros.h"
+#include "otsdaq/Macros/SlowControlsPluginMacros.h"
 #include "otsdaq-epics/ControlsInterfacePlugins/EpicsInterface.h"
 #include "alarm.h"  //Holds strings that we can use to access the alarm status, severity, and parameters
 //#include "/mu2e/ups/epics/v3_15_4/Linux64bit+2.6-2.12-e10/include/alarm.h"
@@ -726,7 +726,7 @@ void EpicsInterface::writePVControlValueToRecord(std::string           pvName,
 		__GEN_COUT__ << "status: " << pdata->status << __E__;
 		__GEN_COUT__ << "severity: " << pdata->severity << __E__;
 		__GEN_COUT__ << "units: " << pdata->units << __E__;
-		__GEN_COUT__ << "upper disp limit: " << pdata->upper_disp_limit << __E__;
+		__GEN_COUT__ << "upper disp limit: " << (int)(pdata->upper_disp_limit) << __E__;
 		__GEN_COUT__ << "lower disp limit: " << pdata->lower_disp_limit << __E__;
 		__GEN_COUT__ << "upper alarm limit: " << pdata->upper_alarm_limit << __E__;
 		__GEN_COUT__ << "upper warning limit: " << pdata->upper_warning_limit << __E__;

@@ -23,7 +23,7 @@
 #include <string>
 #include <dirent.h>
 
-#include "otsdaq-core/SlowControlsCore/SlowControlsVInterface.h"
+#include "otsdaq/SlowControlsCore/SlowControlsVInterface.h"
 
 struct dbr_ctrl_char;
 
