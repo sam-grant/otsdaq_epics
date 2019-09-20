@@ -867,6 +867,9 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
+		unsubscribe(pvName);
+		subscribe(pvName);
+
 		PVInfo*     pv = mapOfPVInfo_.find(pvName)->second;
 		std::string time, value, status, severity;
 
