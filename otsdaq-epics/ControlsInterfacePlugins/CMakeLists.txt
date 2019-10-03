@@ -24,7 +24,10 @@ simple_plugin(EpicsInterface "controls"
 	 ${XDAQ_BASIC_LIB_LIST}	 
 	 SlowControlsCore
 	 PluginMakers
+	 Configurable
+	 ConfigurationInterface
 	 $ENV{XERCES_C_LIB}/libxerces-c.so
+	 ${MF_MESSAGELOGGER}
   )
 
 #simple_plugin(ControlsOtsInterface "controls"	
