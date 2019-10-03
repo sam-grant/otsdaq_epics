@@ -21,19 +21,21 @@ product		 version	optional
 otsdaq           v2_04_02
 otsdaq_utilities v2_04_02
 epics		 v3_16_2
+postgresql	 v9_6_11b
+pqxx		 v6_2_5c
 xerces_c	 v3_2_2
 cetbuildtools    v7_13_02    -        only_for_build
 end_product_list
 
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
-qualifier    	   otsdaq	 otsdaq_utilities	 epics 	  xerces_c 	notes
-e19:s82:prof       e19:s82:prof  e19:s82:prof            e19	e19:prof	-std=c++17
-e19:s82:debug      e19:s82:debug e19:s82:debug           e19    e19:debug  	-std=c++17
-e15:s67:prof       e15:s67:prof  e15:s67:prof  		 e15    e15:prof   	-std=c++14
-e15:s67:debug      e15:s67:debug e15:s67:debug     	 e15    e15:debug  	-std=c++14
-e15:s65:prof       e15:s65:prof  e15:s65:prof   	 e15	e15:prof	-std=c++14
-e15:s65:debug      e15:s65:debug e15:s65:debug        	 e15    e15:debug  	-std=c++14
+qualifier    	   otsdaq	 otsdaq_utilities	 epics	postgresql	pqxx			xerces_c 	notes
+e19:s82:prof       e19:s82:prof  e19:s82:prof            e19	p2715a		e19:p2715a:prof		e19:prof	-std=c++17
+e19:s82:debug      e19:s82:debug e19:s82:debug           e19	p2715a		e19:p2715a:debug	e19:debug  	-std=c++17
+e15:s67:prof       e15:s67:prof  e15:s67:prof  		 e15	p2715a		e19:p2715a:prof		e15:prof   	-std=c++14
+e15:s67:debug      e15:s67:debug e15:s67:debug     	 e15    p2715a		e19:p2715a:debug	e15:debug  	-std=c++14
+e15:s65:prof       e15:s65:prof  e15:s65:prof   	 e15	p2715a		e19:p2715a:prof		e15:prof	-std=c++14
+e15:s65:debug      e15:s65:debug e15:s65:debug        	 e15	p2715a		e19:p2715a:debug	e15:debug  	-std=c++14
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:

@@ -28,6 +28,7 @@ simple_plugin(EpicsInterface "controls"
 	 ConfigurationInterface
 	 $ENV{XERCES_C_LIB}/libxerces-c.so
 	 ${MF_MESSAGELOGGER}
+	 $ENV{POSTGRESQL_LIBRARIES}/libpq.so
   )
 
 #simple_plugin(ControlsOtsInterface "controls"	

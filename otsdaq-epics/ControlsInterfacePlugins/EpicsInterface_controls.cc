@@ -14,7 +14,6 @@
 // -I$EPICS_BASE//include/os/Linux -I$EPICS_BASE/include/compiler/gcc -o
 // EpicsWebClient
 
-
 #define DEBUG false
 #define PV_FILE_NAME \
 	std::string(getenv("SERVICE_DATA_PATH")) + "/SlowControlsDashboardData/pv_list.dat";
@@ -52,19 +51,21 @@ void EpicsInterface::destroy()
 
 	// __GEN_COUT__ << "mapOfPVInfo_.size() = " << mapOfPVInfo_.size() << __E__;
 	SEVCHK(ca_poll(), "EpicsInterface::destroy() : ca_poll");
+	dbSystemLogout();	
 	return;
 }
 
 void EpicsInterface::initialize()
 {
-		__GEN_COUT__ << "Epics Interface now initializing!";
-
-
+	__GEN_COUT__ << "Epics Interface now initializing!";
 	destroy();
 	loadListOfPVs();
+	dbSystemLogin();
 
+	__GEN_COUT__ << "Epics Interface initialized!";
 	return;
 }
+
 std::string EpicsInterface::getList(std::string format)
 {
 	std::string pvList;
@@ -156,6 +157,7 @@ void EpicsInterface::unsubscribe(std::string pvName)
 	cancelSubscriptionToChannel(pvName);
 	return;
 }
+
 //------------------------------------------------------------------------------------------------------------
 //--------------------------------------PRIVATE
 // FUNCTION--------------------------------------
@@ -264,13 +266,13 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 			                          epicsAlarmConditionStrings[pBuf->senmval.status],
 			                          epicsAlarmSeverityStrings[pBuf->senmval.severity]);
 			/*if(DEBUG)
-{
-printf("current %s:\n", eha.count > 1?"values":"value");
-for (i = 0; i < eha.count; i++){
-printf("%d ", *(&(pBuf->senmval.value) + i));
-}
-printf("\n");
-}*/
+			{
+				printf("current %s:\n", eha.count > 1?"values":"value");
+				for (i = 0; i < eha.count; i++){
+					printf("%d ", *(&(pBuf->senmval.value) + i));
+				}
+				printf("\n");
+			}*/
 			break;
 		case DBR_STS_CHAR:
 			if(DEBUG)
@@ -282,14 +284,14 @@ printf("\n");
 			                          epicsAlarmConditionStrings[pBuf->schrval.status],
 			                          epicsAlarmSeverityStrings[pBuf->schrval.severity]);
 			/*if(DEBUG)
-{
-printf("current %s:\n", eha.count > 1?"values":"value");
-for (i = 0; i < eha.count; i++){
-printf("%-5", *(&(pBuf->schrval.value) + i));
-if ((i+1)%15 == 0) printf("\n");
-}
-printf("\n");
-}*/
+			{
+				printf("current %s:\n", eha.count > 1?"values":"value");
+				for (i = 0; i < eha.count; i++){
+					printf("%-5", *(&(pBuf->schrval.value) + i));
+					if ((i+1)%15 == 0) printf("\n");
+				}
+				printf("\n");
+			}*/
 			break;
 		case DBR_STS_LONG:
 			if(DEBUG)
@@ -301,14 +303,14 @@ printf("\n");
 			                          epicsAlarmConditionStrings[pBuf->slngval.status],
 			                          epicsAlarmSeverityStrings[pBuf->slngval.severity]);
 			/*if(DEBUG)
-{
-printf("current %s:\n", eha.count > 1?"values":"value");
-for (i = 0; i < eha.count; i++){
-printf("%-15d", *(&(pBuf->slngval.value) + i));
-if((i+1)%5 == 0) printf("\n");
-}
-printf("\n");
-}*/
+			{
+				printf("current %s:\n", eha.count > 1?"values":"value");
+				for (i = 0; i < eha.count; i++){
+					printf("%-15d", *(&(pBuf->slngval.value) + i));
+					if((i+1)%5 == 0) printf("\n");
+				}
+				printf("\n");
+			}*/
 			break;
 		case DBR_STS_DOUBLE:
 			if(DEBUG)
@@ -320,13 +322,13 @@ printf("\n");
 			                          epicsAlarmConditionStrings[pBuf->sdblval.status],
 			                          epicsAlarmSeverityStrings[pBuf->sdblval.severity]);
 			/*if(DEBUG)
-{
-printf("current %s:\n", eha.count > 1?"values":"value");
-for (i = 0; i < eha.count; i++){
-printf("%-15.4f", *(&(pBuf->sdblval.value) + i));
-}
-printf("\n");
-}*/
+			{
+				printf("current %s:\n", eha.count > 1?"values":"value");
+				for (i = 0; i < eha.count; i++){
+					printf("%-15.4f", *(&(pBuf->sdblval.value) + i));
+				}
+				printf("\n");
+				}*/
 			break;
 		default:
 			if(ca_name(eha.chid))
@@ -371,10 +373,9 @@ void EpicsInterface::channelCallbackHandler(struct connection_handler_args& cha)
 		mapOfPVInfo_.find(pv)->second->channelType = ca_field_type(cha.chid);
 		readPVRecord(pv);
 
-		/*status_ =
-ca_array_get_callback(dbf_type_to_DBR_STS(mapOfPVInfo_.find(pv)->second->channelType),
-ca_element_count(cha.chid), cha.chid, eventCallback, this); SEVCHK(status_,
-"ca_array_get_callback");*/
+		/*status_ =	ca_array_get_callback(dbf_type_to_DBR_STS(mapOfPVInfo_.find(pv)->second->channelType),
+					ca_element_count(cha.chid), cha.chid, eventCallback, this); SEVCHK(status_,
+					"ca_array_get_callback");*/
 	}
 	else
 		__GEN_COUT__ << pv << " disconnected!" << __E__;
@@ -409,7 +410,7 @@ void EpicsInterface::loadListOfPVs()
     	}
 	
     	while ((dirp = readdir(dp)) != NULL) {
-		files.push_back(std::string(dirp->d_name));
+			files.push_back(std::string(dirp->d_name));
     	}
     	closedir(dp);
 
@@ -580,6 +581,7 @@ void EpicsInterface::createChannel(std::string pvName)
 	
 	return;
 }
+
 void EpicsInterface::destroyChannel(std::string pvName)
 {
 	if(mapOfPVInfo_.find(pvName)->second != NULL)
@@ -706,6 +708,7 @@ void EpicsInterface::readValueFromPV(std::string pvName)
 
 	return;
 }
+
 void EpicsInterface::writePVControlValueToRecord(std::string           pvName,
                                                  struct dbr_ctrl_char* pdata)
 {
@@ -739,6 +742,7 @@ void EpicsInterface::writePVControlValueToRecord(std::string           pvName,
 	}
 	return;
 }
+
 // Enforces the circular buffer
 void EpicsInterface::writePVValueToRecord(std::string pvName, std::string pdata)
 {
@@ -778,6 +782,7 @@ void EpicsInterface::writePVValueToRecord(std::string pvName, std::string pdata)
 
 	return;
 }
+
 void EpicsInterface::writePVAlertToQueue(std::string pvName,
                                          const char* status,
                                          const char* severity)
@@ -794,11 +799,12 @@ void EpicsInterface::writePVAlertToQueue(std::string pvName,
 
 	return;
 }
+
 void EpicsInterface::readPVRecord(std::string pvName)
 {
 	status_ = ca_array_get_callback(
 	    dbf_type_to_DBR_STS(mapOfPVInfo_.find(pvName)->second->channelType),
-	    ca_element_count(mapOfPVInfo_.find(pvName)->second->channelID),
+		ca_element_count(mapOfPVInfo_.find(pvName)->second->channelID),
 	    mapOfPVInfo_.find(pvName)->second->channelID,
 	    eventCallback,
 	    this);
@@ -845,6 +851,7 @@ void EpicsInterface::debugConsole(std::string pvName)
 
 	return;
 }
+
 void EpicsInterface::popQueue(std::string pvName)
 {
 	if(DEBUG)
@@ -867,8 +874,8 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
-		unsubscribe(pvName);
-		subscribe(pvName);
+		//unsubscribe(pvName);
+		//subscribe(pvName);
 
 		PVInfo*     pv = mapOfPVInfo_.find(pvName)->second;
 		std::string time, value, status, severity;
@@ -879,6 +886,8 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 
 		if(0 <= index && index < pv->circularBufferSize)
 		{
+			//__GEN_COUT__ << pv->dataCache[index].first <<" "<< std::time(0)-60 << __E__;
+
 			time     = std::to_string(pv->dataCache[index].first);
 			value    = pv->dataCache[index].second;
 			status   = pv->alerts.front().status;
@@ -929,6 +938,7 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 		__GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
 		// subscribe(pvName);
 	}
+	
 	std::array<std::string, 4> currentValues = {"PV Not Found", "NF", "N/a", "N/a"};
 	// std::string currentValues [4] = {"N/a", "N/a", "N/a", "N/a"};
 	return currentValues;
@@ -1026,6 +1036,93 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 	return s;
 }
 
+/*****************************************************************************/
+/*                                                                           */
+/*  dbSystemLogin dbSystemLogout getHistory Antonio 09.24.2019               */
+/*                                                                           */
+/*****************************************************************************/
+void EpicsInterface::dbSystemLogin()
+{
+	int i = 0;
+
+	dbconn = PQconnectdb("dbname=dcs_archive host=mu2edaq12 port=5432 user=dcs_reader password=ses3e-17!dcs_reader");
+		
+	if (PQstatus(dbconn) == CONNECTION_BAD) {
+		__GEN_COUT__ << "Unable to connect to the database\n" << __E__;
+		PQfinish(dbconn);
+	}
+	else{
+		__GEN_COUT__ << "Connected to the database\n" << __E__;
+		i = 1;
+	}
+}
+
+void EpicsInterface::dbSystemLogout()
+{
+	if (PQstatus(dbconn) == CONNECTION_OK)
+	{
+		PQfinish(dbconn);
+		__GEN_COUT__ << "DB CONNECTION CLOSED\n" << __E__;
+	}
+}
+
+std::array<std::array<std::string, 5>, 10> EpicsInterface::getPVHistory(std::string pvName)
+{
+	__GEN_COUT__ << "void EpicsInterface::getPVHistory() reached" << __E__;
+
+	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
+	{
+		PGresult *res;
+		char buffer[1024];
+
+		//VIEW LAST 10 UPDATES
+		int num = snprintf(buffer, sizeof(buffer),
+		"SELECT FLOOR(EXTRACT(EPOCH FROM smpl_time)), float_val, status.name, severity.name, smpl_per FROM channel, sample, status, severity WHERE channel.channel_id = sample.channel_id AND sample.severity_id = severity.severity_id  AND sample.status_id = status.status_id AND channel.name = \'%s\' ORDER BY smpl_time desc LIMIT 10", pvName.c_str());
+
+		res = PQexec(dbconn, buffer);
+
+		if (PQresultStatus(res) == PGRES_TUPLES_OK)
+		{
+			std::string s;
+			std::array<std::array<std::string, 5>, 10> history;
+
+			/* first, print out the attribute names */
+			int nFields = PQnfields(res);
+
+			/* next, print out the rows */
+			for (int i = 0; i < PQntuples(res); i++)
+			{
+				for (int j = 0; j < nFields; j++)
+				{
+					history[i][j] = PQgetvalue(res, i, j);
+					s.append( PQgetvalue(res, i, j));
+					s.append(" ");
+				}
+				s.append("\n");
+			}
+			__GEN_COUT__ << s << __E__;
+			PQclear(res);
+			return history;
+		}
+		else
+		{
+			__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
+			PQclear(res);
+		}
+
+		PQclear(res);
+	}
+	else
+	{
+		__GEN_COUT__ << pvName << " was not found!" << __E__;
+		__GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
+		subscribe(pvName);
+	}
+
+	std::array<std::array<std::string, 5>, 10> history;
+	for (size_t i=0; i<history.size(); i++)
+		history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
+	return history;
+}
+
 DEFINE_OTS_SLOW_CONTROLS(EpicsInterface)
-
-

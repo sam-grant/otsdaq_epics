@@ -85,6 +85,15 @@ struct PVInfo
 	struct dbr_ctrl_char settings;
 };
 
+/* Antonio 09/24/2019 */
+#include <libpq-fe.h>
+
+
+//db connection
+PGconn *dbconn;
+
+//end Antonio
+
 class EpicsInterface : public SlowControlsVInterface
 {
   public:
@@ -103,7 +112,12 @@ class EpicsInterface : public SlowControlsVInterface
 	void                       subscribeJSON(std::string pvList);
 	void                       unsubscribe(std::string pvName);
 	std::array<std::string, 4> getCurrentValue(std::string pvName);
+	std::array<std::array<std::string, 5>, 10> getPVHistory(std::string pvName);
 	std::array<std::string, 9> getSettings(std::string pvName);
+
+	/* Antonio 09/24/2019 */
+	void dbSystemLogin(void);
+	void dbSystemLogout(void);
 
   private:
 	bool checkIfPVExists(std::string pvName);
