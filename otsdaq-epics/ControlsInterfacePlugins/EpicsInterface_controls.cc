@@ -59,8 +59,8 @@ void EpicsInterface::initialize()
 {
 	__GEN_COUT__ << "Epics Interface now initializing!";
 	destroy();
-	loadListOfPVs();
 	dbSystemLogin();
+	loadListOfPVs();
 
 	__GEN_COUT__ << "Epics Interface initialized!";
 	return;
@@ -1048,11 +1048,11 @@ void EpicsInterface::dbSystemLogin()
 	dbconn = PQconnectdb("dbname=dcs_archive host=mu2edaq12 port=5432 user=dcs_reader password=ses3e-17!dcs_reader");
 		
 	if (PQstatus(dbconn) == CONNECTION_BAD) {
-		__GEN_COUT__ << "Unable to connect to the database\n" << __E__;
+		__GEN_COUT__ << "Unable to connect to the database!\n" << __E__;
 		PQfinish(dbconn);
 	}
 	else{
-		__GEN_COUT__ << "Connected to the database\n" << __E__;
+		__GEN_COUT__ << "Connected to the database!\n" << __E__;
 		i = 1;
 	}
 }
