@@ -91,6 +91,7 @@ struct PVInfo
 
 //db connection
 PGconn *dbconn;
+int dbconnStatus_;
 
 //end Antonio
 
@@ -112,7 +113,7 @@ class EpicsInterface : public SlowControlsVInterface
 	void                       subscribeJSON(std::string pvList);
 	void                       unsubscribe(std::string pvName);
 	std::array<std::string, 4> getCurrentValue(std::string pvName);
-	std::array<std::array<std::string, 5>, 10> getPVHistory(std::string pvName);
+	std::vector<std::vector<std::string>> getPVHistory(std::string pvName);
 	std::array<std::string, 9> getSettings(std::string pvName);
 
 	/* Antonio 09/24/2019 */
@@ -137,6 +138,8 @@ class EpicsInterface : public SlowControlsVInterface
 	void debugConsole(std::string pvName);
 	static void eventCallback(struct event_handler_args eha);
 	static void staticChannelCallbackHandler(struct connection_handler_args cha);
+	static void accessRightsCallback(struct access_rights_handler_args args);
+	static void printChidInfo(chid chid, std::string message);
 	void        channelCallbackHandler(struct connection_handler_args& cha);
 	void        popQueue(std::string pvName);
 

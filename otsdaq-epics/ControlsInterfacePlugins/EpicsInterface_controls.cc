@@ -61,14 +61,17 @@ void EpicsInterface::initialize()
 	destroy();
 	dbSystemLogin();
 	loadListOfPVs();
-
-	__GEN_COUT__ << "Epics Interface initialized!";
 	return;
 }
 
 std::string EpicsInterface::getList(std::string format)
 {
 	std::string pvList;
+
+	std::string refreshRate = "";
+	PGresult *res;
+	char buffer[1024];
+
 	//pvList = "[\"None\"]";
 	//std::cout << "SUCA: Returning pvList as: " << pvList << std::endl;
 	//return pvList;
@@ -82,7 +85,28 @@ std::string EpicsInterface::getList(std::string format)
 		pvList = "[";
 		for(auto it = mapOfPVInfo_.begin(); it != mapOfPVInfo_.end(); it++)
 		{
-			pvList += "\"" + it->first + "\", ";
+			if ( dbconnStatus_ == 1){
+				res = PQexec(dbconn, buffer);
+				int num = snprintf(buffer, sizeof(buffer),
+				"SELECT smpl_mode_id, smpl_per FROM channel WHERE name = '%s'", (it->first).c_str());
+
+				if (PQresultStatus(res) == PGRES_TUPLES_OK)
+				{
+					int smplMode = 0;
+					try{smplMode = std::stoi(PQgetvalue(res, 0, 0));}catch (const std::exception& e) {}
+					if(smplMode == 2)
+					  refreshRate = PQgetvalue(res, 0, 1);
+					PQclear(res);
+					__GEN_COUT__ << "getList() \"sample rate\" SELECT result: "
+					<< it->first << ":" << refreshRate << " (smpl_mode_id = " << smplMode << ")" << __E__;
+				}
+				else
+				{
+					__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
+				   	PQclear(res);
+				}
+			}
+			pvList += "\"" + it->first + ":" + refreshRate + "\", ";
 			//__GEN_COUT__ << it->first << __E__;
 		}
 		pvList.resize(pvList.size() - 2);
@@ -101,10 +125,9 @@ void EpicsInterface::subscribe(std::string pvName)
 		return;
 	}
 	createChannel(pvName);
-	sleep(1); 	//what makes the console hang at startup
+	sleep(1); //what makes the console hang at startup
 	subscribeToChannel(pvName, mapOfPVInfo_.find(pvName)->second->channelType);
-	SEVCHK(ca_poll(), "EpicsInterface::subscribe() : ca_poll");   //print outs that handle takeover the console; can make our own error handler
-
+	//SEVCHK(ca_poll(), "EpicsInterface::subscribe() : ca_poll");  //print outs that handle takeover the console; can make our own error handler
 	return;
 }
 
@@ -499,6 +522,8 @@ void EpicsInterface::loadListOfPVs()
 	}
 
 	__GEN_COUT__ << "Finished reading file and subscribing to pvs!" << __E__;
+	SEVCHK(ca_pend_event(0.0), "EpicsInterface::subscribe() : ca_pend_event(0.0)"); //Start listening
+
 	return;
 }
 
@@ -520,7 +545,7 @@ void EpicsInterface::getControlValues(std::string pvName)
 	                             eventCallback,
 	                             this),
 	       "ca_array_get_callback");
-	SEVCHK(ca_poll(), "EpicsInterface::getControlValues() : ca_poll");
+	//SEVCHK(ca_poll(), "EpicsInterface::getControlValues() : ca_poll");
 	return;
 }
 
@@ -568,7 +593,6 @@ void EpicsInterface::createChannel(std::string pvName)
 	}
 
 	// at this point, make a new channel
-
 	SEVCHK(ca_create_channel(pvName.c_str(),
 	                         staticChannelCallbackHandler,
 	                         mapOfPVInfo_.find(pvName)->second->parameterPtr,
@@ -576,9 +600,9 @@ void EpicsInterface::createChannel(std::string pvName)
 	                         &(mapOfPVInfo_.find(pvName)->second->channelID)),
 	       "EpicsInterface::createChannel() : ca_create_channel");
 	__GEN_COUT__ << "channelID: " << pvName << mapOfPVInfo_.find(pvName)->second->channelID	<< __E__;
-	SEVCHK(ca_poll(), "EpicsInterface::createChannel() : ca_poll"); //This routine will perform outstanding channel access background activity and then return.
 
-	
+	SEVCHK(ca_replace_access_rights_event(mapOfPVInfo_.find(pvName)->second->channelID, accessRightsCallback), "EpicsInterface::createChannel() : ca_replace_access_rights_event");
+	//SEVCHK(ca_poll(), "EpicsInterface::createChannel() : ca_poll"); //This routine will perform outstanding channel access background activity and then return.
 	return;
 }
 
@@ -609,6 +633,24 @@ void EpicsInterface::destroyChannel(std::string pvName)
 		}
 	}
 	return;
+}
+
+void EpicsInterface::accessRightsCallback(struct access_rights_handler_args args)
+{
+    chid	chid = args.chid;
+
+    printChidInfo(chid,"EpicsInterface::createChannel() : accessRightsCallback");
+}
+
+void EpicsInterface::printChidInfo(chid chid, std::string message)
+{
+    __COUT__ << message.c_str() << __E__;
+    __COUT__ << "pv: " << ca_name(chid)  << " type(" << ca_field_type(chid) 
+	     << ") nelements("<< ca_element_count(chid) 
+	     << ") host(" << ca_host_name(chid) << ")" << __E__;
+    __COUT__ << "read(" << ca_read_access(chid)
+	     << ") write("<< ca_write_access(chid) 
+	     << ") state(" << ca_state(chid) << ")" << __E__;
 }
 
 void EpicsInterface::subscribeToChannel(std::string pvName, chtype subscriptionType)
@@ -661,8 +703,7 @@ void EpicsInterface::subscribeToChannel(std::string pvName, chtype subscriptionT
 		          << mapOfPVInfo_.find(pvName)->first << "!\n"
 		          << __E__;
 	}
-	SEVCHK(ca_poll(), "EpicsInterface::subscribeToChannel() : ca_poll");
-
+	//SEVCHK(ca_poll(), "EpicsInterface::subscribeToChannel() : ca_poll");
 	return;
 }
 
@@ -874,9 +915,6 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
-		//unsubscribe(pvName);
-		//subscribe(pvName);
-
 		PVInfo*     pv = mapOfPVInfo_.find(pvName)->second;
 		std::string time, value, status, severity;
 
@@ -950,6 +988,9 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
+	        std::string units = "DC'd", upperDisplayLimit = "DC'd", lowerDisplayLimit = "DC'd", upperAlarmLimit = "DC'd",
+			    upperWarningLimit = "DC'd", lowerWarningLimit = "DC'd", lowerAlarmLimit = "DC'd",
+			    upperControlLimit = "DC'd", lowerControlLimit = "DC'd";
 		if(mapOfPVInfo_.find(pvName)->second != NULL)  // Check to see if the pvName
 		                                               // maps to a null pointer so
 		                                               // we don't have any errors
@@ -958,11 +999,18 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 			          // subscription
 			{
 				dbr_ctrl_char* set = &mapOfPVInfo_.find(pvName)->second->settings;
-				std::string units, upperDisplayLimit, lowerDisplayLimit, upperAlarmLimit,
-				    upperWarningLimit, lowerWarningLimit, lowerAlarmLimit,
-				    upperControlLimit, lowerControlLimit;
-				// sprintf(&units[0],"%d",set->units);
-				//			    	units = set->units;
+
+				//sprintf(&units[0],"%d",set->units);
+				units = set->units;
+				upperDisplayLimit = std::to_string(set->upper_disp_limit);
+				lowerDisplayLimit = std::to_string(set->lower_disp_limit);
+				upperWarningLimit = std::to_string(set->upper_warning_limit);
+				lowerWarningLimit = std::to_string(set->lower_warning_limit);
+				upperAlarmLimit   = std::to_string(set->upper_alarm_limit);
+				lowerAlarmLimit   = std::to_string(set->lower_alarm_limit);
+				upperControlLimit = std::to_string(set->upper_ctrl_limit);
+				lowerControlLimit = std::to_string(set->lower_ctrl_limit);
+
 				//					sprintf(&upperDisplayLimit[0],"%u",set->upper_disp_limit);
 				//					sprintf(&lowerDisplayLimit[0],"%u",set->lower_disp_limit
 				//);
@@ -978,7 +1026,7 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 
 				//					std::string units             =
 				// set->units;
-				//					std::string upperDisplayLimit
+				//                                  	std::string upperDisplayLimit
 				//(reinterpret_cast<char*>(set->upper_disp_limit   ));
 				//					std::string lowerDisplayLimit
 				//(reinterpret_cast<char*>(set->lower_disp_limit   ));
@@ -994,8 +1042,8 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 				//(reinterpret_cast<char*>(set->upper_ctrl_limit   ));
 				//					std::string lowerControlLimit
 				//(reinterpret_cast<char*>(set->lower_ctrl_limit   ));
-				if(DEBUG)
-				{
+				//if(DEBUG)
+				//{
 					__GEN_COUT__ << "Units              :    " << units << __E__;
 					__GEN_COUT__ << "Upper Display Limit:    " << upperDisplayLimit
 					          << __E__;
@@ -1013,15 +1061,15 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 					          << __E__;
 					__GEN_COUT__ << "Lower Control Limit:    " << lowerControlLimit
 					          << __E__;
-				}
+			        //}
 			}
 
-		std::array<std::string, 9> s = {
-		    "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd"};
+		//std::array<std::string, 9> s = {
+		//    "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd"};
 
-		// std::array<std::string, 9> s = {units, upperDisplayLimit,
-		// lowerDisplayLimit, upperAlarmLimit, upperWarningLimit, lowerWarningLimit,
-		// lowerAlarmLimit, upperControlLimit, lowerControlLimit};
+		std::array<std::string, 9> s = {units, upperDisplayLimit,
+		lowerDisplayLimit, upperAlarmLimit, upperWarningLimit, lowerWarningLimit,
+		lowerAlarmLimit, upperControlLimit, lowerControlLimit};
 
 		return s;
 	}
@@ -1043,7 +1091,7 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 /*****************************************************************************/
 void EpicsInterface::dbSystemLogin()
 {
-	int i = 0;
+        dbconnStatus_ = 0;
 
 	dbconn = PQconnectdb("dbname=dcs_archive host=mu2edaq12 port=5432 user=dcs_reader password=ses3e-17!dcs_reader");
 		
@@ -1053,7 +1101,7 @@ void EpicsInterface::dbSystemLogin()
 	}
 	else{
 		__GEN_COUT__ << "Connected to the database!\n" << __E__;
-		i = 1;
+		dbconnStatus_ = 1;
 	}
 }
 
@@ -1066,7 +1114,7 @@ void EpicsInterface::dbSystemLogout()
 	}
 }
 
-std::array<std::array<std::string, 5>, 10> EpicsInterface::getPVHistory(std::string pvName)
+std::vector<std::vector<std::string>> EpicsInterface::getPVHistory(std::string pvName)
 {
 	__GEN_COUT__ << "void EpicsInterface::getPVHistory() reached" << __E__;
 
@@ -1079,49 +1127,63 @@ std::array<std::array<std::string, 5>, 10> EpicsInterface::getPVHistory(std::str
 		int num = snprintf(buffer, sizeof(buffer),
 		"SELECT FLOOR(EXTRACT(EPOCH FROM smpl_time)), float_val, status.name, severity.name, smpl_per FROM channel, sample, status, severity WHERE channel.channel_id = sample.channel_id AND sample.severity_id = severity.severity_id  AND sample.status_id = status.status_id AND channel.name = \'%s\' ORDER BY smpl_time desc LIMIT 10", pvName.c_str());
 
-		res = PQexec(dbconn, buffer);
-
-		if (PQresultStatus(res) == PGRES_TUPLES_OK)
-		{
-			std::string s;
-			std::array<std::array<std::string, 5>, 10> history;
-
-			/* first, print out the attribute names */
-			int nFields = PQnfields(res);
-
-			/* next, print out the rows */
-			for (int i = 0; i < PQntuples(res); i++)
-			{
-				for (int j = 0; j < nFields; j++)
-				{
-					history[i][j] = PQgetvalue(res, i, j);
-					s.append( PQgetvalue(res, i, j));
-					s.append(" ");
-				}
-				s.append("\n");
-			}
-			__GEN_COUT__ << s << __E__;
-			PQclear(res);
-			return history;
+		if ( dbconnStatus_ != 1){
+		  __GEN_COUT__ << "void EpicsInterface::getPVHistory() reached" << __E__;
+		  std::vector<std::vector<std::string>> history;
+		  history.resize(1);
+		  for (size_t i=0; i<history.size(); i++)
+		    history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
+		  return history;
 		}
 		else
 		{
-			__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
-			PQclear(res);
+		  res = PQexec(dbconn, buffer);
 		}
+
+		if (PQresultStatus(res) == PGRES_TUPLES_OK)
+		{
+		  std::string s;
+		  std::vector<std::vector<std::string>> history;
+
+		  /* first, print out the attribute names */
+		  int nFields = PQnfields(res);
+		  history.resize(PQntuples(res));
+        	  
+		  /* next, print out the rows */
+		  for (int i = 0; i < PQntuples(res); i++)
+		    {
+		      history[i].resize(nFields);
+		      for (int j = 0; j < nFields; j++)
+			{
+			  history[i][j] = PQgetvalue(res, i, j);
+			  s.append( PQgetvalue(res, i, j));
+			  s.append(" ");
+	       	      }
+		      s.append("\n");
+		    }
+		  __GEN_COUT__ << s << __E__;
+		  PQclear(res);
+		  return history;
+		}
+		else
+		  {
+		    __GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
+		    PQclear(res);
+		  }
 
 		PQclear(res);
 	}
 	else
-	{
-		__GEN_COUT__ << pvName << " was not found!" << __E__;
-		__GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
-		subscribe(pvName);
-	}
+	  {
+	    __GEN_COUT__ << pvName << " was not found!" << __E__;
+	    __GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
+	    subscribe(pvName);
+	  }
 
-	std::array<std::array<std::string, 5>, 10> history;
+	std::vector<std::vector<std::string>> history;
+	history.resize(1);
 	for (size_t i=0; i<history.size(); i++)
-		history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
+	  history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
 	return history;
 }
 
