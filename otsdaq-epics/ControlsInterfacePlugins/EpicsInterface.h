@@ -108,6 +108,7 @@ class EpicsInterface : public SlowControlsVInterface
 	void initialize();
 	void destroy();
 
+	std::vector<std::string>   getPVList();
 	std::string                getList(std::string format);
 	void                       subscribe(std::string pvName);
 	void                       subscribeJSON(std::string pvList);

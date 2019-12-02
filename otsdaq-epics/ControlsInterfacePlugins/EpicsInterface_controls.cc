@@ -64,6 +64,18 @@ void EpicsInterface::initialize()
 	return;
 }
 
+std::vector<std::string> EpicsInterface::getPVList()
+{
+	std::vector<std::string> pvList;
+	pvList.resize(mapOfPVInfo_.size());
+	for (auto pv : mapOfPVInfo_)
+	{
+		__GEN_COUT__ << "getList() add: " + pv.first << __E__;
+		pvList.push_back(pv.first);
+	}
+	return pvList;
+}
+
 std::string EpicsInterface::getList(std::string format)
 {
 	std::string pvList;
@@ -75,42 +87,49 @@ std::string EpicsInterface::getList(std::string format)
 	//pvList = "[\"None\"]";
 	//std::cout << "SUCA: Returning pvList as: " << pvList << std::endl;
 	//return pvList;
-	
+
 	__GEN_COUT__ << "Epics Interface now retrieving pvList!";
 
-	if(format == "JSON")
+	if (format == "JSON")
 	{
 		__GEN_COUT__ << "Getting list in JSON format! There are " << mapOfPVInfo_.size() << " pv's.";
 		// pvList = "{\"PVList\" : [";
 		pvList = "[";
-		for(auto it = mapOfPVInfo_.begin(); it != mapOfPVInfo_.end(); it++)
+		for (auto it = mapOfPVInfo_.begin(); it != mapOfPVInfo_.end(); it++)
 		{
-			if ( dbconnStatus_ == 1){
+			if (dbconnStatus_ == 1)
+			{
 				res = PQexec(dbconn, buffer);
 				int num = snprintf(buffer, sizeof(buffer),
-				"SELECT smpl_mode_id, smpl_per FROM channel WHERE name = '%s'", (it->first).c_str());
+									"SELECT smpl_mode_id, smpl_per FROM channel WHERE name = '%s'", (it->first).c_str());
 
 				if (PQresultStatus(res) == PGRES_TUPLES_OK)
 				{
 					int smplMode = 0;
-					try{smplMode = std::stoi(PQgetvalue(res, 0, 0));}catch (const std::exception& e) {}
-					if(smplMode == 2)
-					  refreshRate = PQgetvalue(res, 0, 1);
+					try
+					{
+						smplMode = std::stoi(PQgetvalue(res, 0, 0));
+					}
+					catch (const std::exception &e)
+					{
+					}
+					if (smplMode == 2)
+						refreshRate = PQgetvalue(res, 0, 1);
 					PQclear(res);
 					__GEN_COUT__ << "getList() \"sample rate\" SELECT result: "
-					<< it->first << ":" << refreshRate << " (smpl_mode_id = " << smplMode << ")" << __E__;
+									<< it->first << ":" << refreshRate << " (smpl_mode_id = " << smplMode << ")" << __E__;
 				}
 				else
 				{
 					__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
-				   	PQclear(res);
+					PQclear(res);
 				}
 			}
 			pvList += "\"" + it->first + ":" + refreshRate + "\", ";
 			//__GEN_COUT__ << it->first << __E__;
 		}
 		pvList.resize(pvList.size() - 2);
-		pvList += "]";  //}";
+		pvList += "]"; //}";
 		__GEN_COUT__ << pvList << __E__;
 		return pvList;
 	}
@@ -119,7 +138,7 @@ std::string EpicsInterface::getList(std::string format)
 
 void EpicsInterface::subscribe(std::string pvName)
 {
-	if(!checkIfPVExists(pvName))
+	if (!checkIfPVExists(pvName))
 	{
 		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
@@ -138,32 +157,32 @@ void EpicsInterface::subscribeJSON(std::string pvList)
 
 	std::string JSON = "{\"PVList\" :";
 	std::string pvName;
-	if(pvList.find(JSON) != std::string::npos)
+	if (pvList.find(JSON) != std::string::npos)
 	{
 		pvList = pvList.substr(pvList.find(JSON) + JSON.length(), std::string::npos);
 		do
 		{
 			pvList = pvList.substr(pvList.find("\"") + 1,
-			                       std::string::npos);     // eliminate up to the next "
-			pvName = pvList.substr(0, pvList.find("\""));  //
+									std::string::npos);	// eliminate up to the next "
+			pvName = pvList.substr(0, pvList.find("\"")); //
 			// if(DEBUG){__GEN_COUT__ << "Read PV Name:  " << pvName << __E__;}
 			pvList = pvList.substr(pvList.find("\"") + 1, std::string::npos);
 			// if(DEBUG){__GEN_COUT__ << "pvList : " << pvList << __E__;}
 
-			if(checkIfPVExists(pvName))
+			if (checkIfPVExists(pvName))
 			{
 				createChannel(pvName);
 				subscribeToChannel(pvName,
-				                   mapOfPVInfo_.find(pvName)->second->channelType);
+									mapOfPVInfo_.find(pvName)->second->channelType);
 				SEVCHK(ca_poll(), "EpicsInterface::subscribeJSON : ca_poll");
 			}
-			else if(DEBUG)
+			else if (DEBUG)
 			{
 				__GEN_COUT__ << pvName << " not found in file! Not subscribing!"
-				          << __E__;
+								<< __E__;
 			}
 
-		} while(pvList.find(",") != std::string::npos);
+		} while (pvList.find(",") != std::string::npos);
 	}
 
 	return;
@@ -171,7 +190,7 @@ void EpicsInterface::subscribeJSON(std::string pvList)
 
 void EpicsInterface::unsubscribe(std::string pvName)
 {
-	if(!checkIfPVExists(pvName))
+	if (!checkIfPVExists(pvName))
 	{
 		__GEN_COUT__ << pvName << " doesn't exist!" << __E__;
 		return;
@@ -188,184 +207,184 @@ void EpicsInterface::unsubscribe(std::string pvName)
 void EpicsInterface::eventCallback(struct event_handler_args eha)
 {
 	chid chid = eha.chid;
-	if(eha.status == ECA_NORMAL)
+	if (eha.status == ECA_NORMAL)
 	{
-		int                  i;
-		union db_access_val* pBuf = (union db_access_val*)eha.dbr;
-		if(DEBUG)
+		int i;
+		union db_access_val *pBuf = (union db_access_val *)eha.dbr;
+		if (DEBUG)
 		{
 			printf("channel %s: ", ca_name(eha.chid));
 		}
 
-		switch(eha.type)
+		switch (eha.type)
 		{
 		case DBR_CTRL_CHAR:
-			if(true)
+			if (true)
 			{
 				__COUT__ << "Response Type: DBR_CTRL_CHAR" << __E__;
 			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVControlValueToRecord(
-			        ca_name(eha.chid),
-			        ((struct dbr_ctrl_char*)
-			             eha.dbr));  // write the PV's control values to records
+			((EpicsInterface *)eha.usr)
+				->writePVControlValueToRecord(
+					ca_name(eha.chid),
+					((struct dbr_ctrl_char *)
+							eha.dbr)); // write the PV's control values to records
 			break;
 		case DBF_DOUBLE:
-			if(DEBUG)
+			if (DEBUG)
 			{
 				__COUT__ << "Response Type: DBR_DOUBLE" << __E__;
 			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVValueToRecord(
-			        ca_name(eha.chid),
-			        std::to_string(
-			            *((double*)eha.dbr)));  // write the PV's value to records
+			((EpicsInterface *)eha.usr)
+				->writePVValueToRecord(
+					ca_name(eha.chid),
+					std::to_string(
+						*((double *)eha.dbr))); // write the PV's value to records
 			break;
 		case DBR_STS_STRING:
-			if(DEBUG)
+			if (DEBUG)
 			{
 				__COUT__ << "Response Type: DBR_STS_STRING" << __E__;
 			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVAlertToQueue(ca_name(eha.chid),
-			                          epicsAlarmConditionStrings[pBuf->sstrval.status],
-			                          epicsAlarmSeverityStrings[pBuf->sstrval.severity]);
+			((EpicsInterface *)eha.usr)
+				->writePVAlertToQueue(ca_name(eha.chid),
+										epicsAlarmConditionStrings[pBuf->sstrval.status],
+										epicsAlarmSeverityStrings[pBuf->sstrval.severity]);
 			/*if(DEBUG)
-			{
-			printf("current %s:\n", eha.count > 1?"values":"value");
-			for (i = 0; i < eha.count; i++)
-			{
-			printf("%s\t", *(&(pBuf->sstrval.value) + i));
-			if ((i+1)%6 == 0) printf("\n");
-			}
-			printf("\n");
-			}*/
+		{
+		printf("current %s:\n", eha.count > 1?"values":"value");
+		for (i = 0; i < eha.count; i++)
+		{
+		printf("%s\t", *(&(pBuf->sstrval.value) + i));
+		if ((i+1)%6 == 0) printf("\n");
+		}
+		printf("\n");
+		}*/
 			break;
 		case DBR_STS_SHORT:
-			if(DEBUG)
+			if (DEBUG)
 			{
 				__COUT__ << "Response Type: DBR_STS_SHORT" << __E__;
 			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVAlertToQueue(ca_name(eha.chid),
-			                          epicsAlarmConditionStrings[pBuf->sshrtval.status],
-			                          epicsAlarmSeverityStrings[pBuf->sshrtval.severity]);
+			((EpicsInterface *)eha.usr)
+				->writePVAlertToQueue(ca_name(eha.chid),
+										epicsAlarmConditionStrings[pBuf->sshrtval.status],
+										epicsAlarmSeverityStrings[pBuf->sshrtval.severity]);
 			/*if(DEBUG)
-			{
-			printf("current %s:\n", eha.count > 1?"values":"value");
-			for (i = 0; i < eha.count; i++){
-			printf("%-10d", *(&(pBuf->sshrtval.value) + i));
-			if ((i+1)%8 == 0) printf("\n");
-			}
-			printf("\n");
-			}*/
+		{
+		printf("current %s:\n", eha.count > 1?"values":"value");
+		for (i = 0; i < eha.count; i++){
+		printf("%-10d", *(&(pBuf->sshrtval.value) + i));
+		if ((i+1)%8 == 0) printf("\n");
+		}
+		printf("\n");
+		}*/
 			break;
 		case DBR_STS_FLOAT:
-			if(DEBUG)
+			if (DEBUG)
 			{
 				__COUT__ << "Response Type: DBR_STS_FLOAT" << __E__;
 			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVAlertToQueue(ca_name(eha.chid),
-			                          epicsAlarmConditionStrings[pBuf->sfltval.status],
-			                          epicsAlarmSeverityStrings[pBuf->sfltval.severity]);
+			((EpicsInterface *)eha.usr)
+				->writePVAlertToQueue(ca_name(eha.chid),
+										epicsAlarmConditionStrings[pBuf->sfltval.status],
+										epicsAlarmSeverityStrings[pBuf->sfltval.severity]);
 			/*if(DEBUG)
+		{
+		printf("current %s:\n", eha.count > 1?"values":"value");
+		for (i = 0; i < eha.count; i++){
+		printf("-10.4f", *(&(pBuf->sfltval.value) + i));
+		if ((i+1)%8 == 0) printf("\n");
+		}
+		printf("\n");
+		}*/
+			break;
+		case DBR_STS_ENUM:
+			if (DEBUG)
 			{
+				__COUT__ << "Response Type: DBR_STS_ENUM" << __E__;
+			}
+			((EpicsInterface *)eha.usr)
+				->writePVAlertToQueue(ca_name(eha.chid),
+										epicsAlarmConditionStrings[pBuf->senmval.status],
+										epicsAlarmSeverityStrings[pBuf->senmval.severity]);
+			/*if(DEBUG)
+		{
 			printf("current %s:\n", eha.count > 1?"values":"value");
 			for (i = 0; i < eha.count; i++){
-			printf("-10.4f", *(&(pBuf->sfltval.value) + i));
-			if ((i+1)%8 == 0) printf("\n");
+				printf("%d ", *(&(pBuf->senmval.value) + i));
+			}
+			printf("\n");
+		}*/
+			break;
+		case DBR_STS_CHAR:
+			if (DEBUG)
+			{
+				__COUT__ << "Response Type: DBR_STS_CHAR" << __E__;
+			}
+			((EpicsInterface *)eha.usr)
+				->writePVAlertToQueue(ca_name(eha.chid),
+										epicsAlarmConditionStrings[pBuf->schrval.status],
+										epicsAlarmSeverityStrings[pBuf->schrval.severity]);
+			/*if(DEBUG)
+		{
+			printf("current %s:\n", eha.count > 1?"values":"value");
+			for (i = 0; i < eha.count; i++){
+				printf("%-5", *(&(pBuf->schrval.value) + i));
+				if ((i+1)%15 == 0) printf("\n");
+			}
+			printf("\n");
+		}*/
+			break;
+		case DBR_STS_LONG:
+			if (DEBUG)
+			{
+				__COUT__ << "Response Type: DBR_STS_LONG" << __E__;
+			}
+			((EpicsInterface *)eha.usr)
+				->writePVAlertToQueue(ca_name(eha.chid),
+										epicsAlarmConditionStrings[pBuf->slngval.status],
+										epicsAlarmSeverityStrings[pBuf->slngval.severity]);
+			/*if(DEBUG)
+		{
+			printf("current %s:\n", eha.count > 1?"values":"value");
+			for (i = 0; i < eha.count; i++){
+				printf("%-15d", *(&(pBuf->slngval.value) + i));
+				if((i+1)%5 == 0) printf("\n");
+			}
+			printf("\n");
+		}*/
+			break;
+		case DBR_STS_DOUBLE:
+			if (DEBUG)
+			{
+				__COUT__ << "Response Type: DBR_STS_DOUBLE" << __E__;
+			}
+			((EpicsInterface *)eha.usr)
+				->writePVAlertToQueue(ca_name(eha.chid),
+										epicsAlarmConditionStrings[pBuf->sdblval.status],
+										epicsAlarmSeverityStrings[pBuf->sdblval.severity]);
+			/*if(DEBUG)
+		{
+			printf("current %s:\n", eha.count > 1?"values":"value");
+			for (i = 0; i < eha.count; i++){
+				printf("%-15.4f", *(&(pBuf->sdblval.value) + i));
 			}
 			printf("\n");
 			}*/
 			break;
-		case DBR_STS_ENUM:
-			if(DEBUG)
-			{
-				__COUT__ << "Response Type: DBR_STS_ENUM" << __E__;
-			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVAlertToQueue(ca_name(eha.chid),
-			                          epicsAlarmConditionStrings[pBuf->senmval.status],
-			                          epicsAlarmSeverityStrings[pBuf->senmval.severity]);
-			/*if(DEBUG)
-			{
-				printf("current %s:\n", eha.count > 1?"values":"value");
-				for (i = 0; i < eha.count; i++){
-					printf("%d ", *(&(pBuf->senmval.value) + i));
-				}
-				printf("\n");
-			}*/
-			break;
-		case DBR_STS_CHAR:
-			if(DEBUG)
-			{
-				__COUT__ << "Response Type: DBR_STS_CHAR" << __E__;
-			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVAlertToQueue(ca_name(eha.chid),
-			                          epicsAlarmConditionStrings[pBuf->schrval.status],
-			                          epicsAlarmSeverityStrings[pBuf->schrval.severity]);
-			/*if(DEBUG)
-			{
-				printf("current %s:\n", eha.count > 1?"values":"value");
-				for (i = 0; i < eha.count; i++){
-					printf("%-5", *(&(pBuf->schrval.value) + i));
-					if ((i+1)%15 == 0) printf("\n");
-				}
-				printf("\n");
-			}*/
-			break;
-		case DBR_STS_LONG:
-			if(DEBUG)
-			{
-				__COUT__ << "Response Type: DBR_STS_LONG" << __E__;
-			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVAlertToQueue(ca_name(eha.chid),
-			                          epicsAlarmConditionStrings[pBuf->slngval.status],
-			                          epicsAlarmSeverityStrings[pBuf->slngval.severity]);
-			/*if(DEBUG)
-			{
-				printf("current %s:\n", eha.count > 1?"values":"value");
-				for (i = 0; i < eha.count; i++){
-					printf("%-15d", *(&(pBuf->slngval.value) + i));
-					if((i+1)%5 == 0) printf("\n");
-				}
-				printf("\n");
-			}*/
-			break;
-		case DBR_STS_DOUBLE:
-			if(DEBUG)
-			{
-				__COUT__ << "Response Type: DBR_STS_DOUBLE" << __E__;
-			}
-			((EpicsInterface*)eha.usr)
-			    ->writePVAlertToQueue(ca_name(eha.chid),
-			                          epicsAlarmConditionStrings[pBuf->sdblval.status],
-			                          epicsAlarmSeverityStrings[pBuf->sdblval.severity]);
-			/*if(DEBUG)
-			{
-				printf("current %s:\n", eha.count > 1?"values":"value");
-				for (i = 0; i < eha.count; i++){
-					printf("%-15.4f", *(&(pBuf->sdblval.value) + i));
-				}
-				printf("\n");
-				}*/
-			break;
 		default:
-			if(ca_name(eha.chid))
+			if (ca_name(eha.chid))
 			{
-				if(DEBUG)
+				if (DEBUG)
 				{
 					__COUT__ << " EpicsInterface::eventCallback: PV Name = "
-					          << ca_name(eha.chid) << __E__;
-					__COUT__ << (char*)eha.dbr << __E__;
+								<< ca_name(eha.chid) << __E__;
+					__COUT__ << (char *)eha.dbr << __E__;
 				}
-				((EpicsInterface*)eha.usr)
-				    ->writePVValueToRecord(
-				        ca_name(eha.chid),
-				        (char*)eha.dbr);  // write the PV's value to records
+				((EpicsInterface *)eha.usr)
+					->writePVValueToRecord(
+						ca_name(eha.chid),
+						(char *)eha.dbr); // write the PV's value to records
 			}
 
 			break;
@@ -382,14 +401,14 @@ void EpicsInterface::staticChannelCallbackHandler(struct connection_handler_args
 {
 	__COUT__ << "webClientChannelCallbackHandler" << __E__;
 
-	((PVHandlerParameters*)ca_puser(cha.chid))->webClient->channelCallbackHandler(cha);
+	((PVHandlerParameters *)ca_puser(cha.chid))->webClient->channelCallbackHandler(cha);
 	return;
 }
 
-void EpicsInterface::channelCallbackHandler(struct connection_handler_args& cha)
+void EpicsInterface::channelCallbackHandler(struct connection_handler_args & cha)
 {
-	std::string pv = ((PVHandlerParameters*)ca_puser(cha.chid))->pvName;
-	if(cha.op == CA_OP_CONN_UP)
+	std::string pv = ((PVHandlerParameters *)ca_puser(cha.chid))->pvName;
+	if (cha.op == CA_OP_CONN_UP)
 	{
 		__GEN_COUT__ << pv << cha.chid << " connected! " << __E__;
 
@@ -397,8 +416,8 @@ void EpicsInterface::channelCallbackHandler(struct connection_handler_args& cha)
 		readPVRecord(pv);
 
 		/*status_ =	ca_array_get_callback(dbf_type_to_DBR_STS(mapOfPVInfo_.find(pv)->second->channelType),
-					ca_element_count(cha.chid), cha.chid, eventCallback, this); SEVCHK(status_,
-					"ca_array_get_callback");*/
+				ca_element_count(cha.chid), cha.chid, eventCallback, this); SEVCHK(status_,
+				"ca_array_get_callback");*/
 	}
 	else
 		__GEN_COUT__ << pv << " disconnected!" << __E__;
@@ -408,13 +427,13 @@ void EpicsInterface::channelCallbackHandler(struct connection_handler_args& cha)
 
 bool EpicsInterface::checkIfPVExists(std::string pvName)
 {
-	if(DEBUG)
+	if (DEBUG)
 	{
 		__GEN_COUT__ << "EpicsInterface::checkIfPVExists(): PV Info Map Length is "
-		          << mapOfPVInfo_.size() << __E__;
+						<< mapOfPVInfo_.size() << __E__;
 	}
 
-	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
+	if (mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 		return true;
 
 	return false;
@@ -424,24 +443,18 @@ void EpicsInterface::loadListOfPVs()
 {
 	__GEN_COUT__ << "LOADING LIST OF PVS!!!!";
 	std::string pv_csv_dir_path = PV_CSV_DIR;
-	std::vector<std::string> files = std::vector <std::string>();
+	std::vector<std::string> files = std::vector<std::string>();
 	DIR *dp;
-    	struct dirent *dirp;
-    	if((dp  = opendir(pv_csv_dir_path.c_str())) == NULL) {
-        	std::cout << "Error  opening: " << pv_csv_dir_path << std::endl;
-        	return;
-    	}
-	
-    	while ((dirp = readdir(dp)) != NULL) {
-			files.push_back(std::string(dirp->d_name));
-    	}
-    	closedir(dp);
-
-    	/*	
-	for (unsigned int i = 0;i < files.size();i++) {
-        	std::cout << files[i] << std::endl;
+	struct dirent *dirp;
+	if((dp  = opendir(pv_csv_dir_path.c_str())) == NULL) {
+		std::cout << "Error  opening: " << pv_csv_dir_path << std::endl;
+		return;
 	}
-	*/
+
+	while ((dirp = readdir(dp)) != NULL) {
+		files.push_back(std::string(dirp->d_name));
+	}
+	closedir(dp);
 	
 	// Initialize Channel Access
 	status_ = ca_task_initialize();
@@ -511,7 +524,7 @@ void EpicsInterface::loadListOfPVs()
 		__GEN_COUT__ << pv.first << __E__;
 		subscribe(pv.first);
 	}
-		
+
 	// channels are subscribed to by here.
 
 	// get parameters (e.g. HIHI("upper alarm") HI("upper warning") LOLO("lower
@@ -976,7 +989,7 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 		__GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
 		// subscribe(pvName);
 	}
-	
+
 	std::array<std::string, 4> currentValues = {"PV Not Found", "NF", "N/a", "N/a"};
 	// std::string currentValues [4] = {"N/a", "N/a", "N/a", "N/a"};
 	return currentValues;
