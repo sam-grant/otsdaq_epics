@@ -64,13 +64,13 @@ void EpicsInterface::initialize()
 	return;
 }
 
-std::vector<std::string> EpicsInterface::getPVList()
+std::vector<std::string> EpicsInterface::getChannelList()
 {
 	std::vector<std::string> pvList;
 	pvList.resize(mapOfPVInfo_.size());
 	for (auto pv : mapOfPVInfo_)
 	{
-		__GEN_COUT__ << "getList() add: " + pv.first << __E__;
+		__GEN_COUT__ << "getPVList() add: " + pv.first << __E__;
 		pvList.push_back(pv.first);
 	}
 	return pvList;
@@ -216,10 +216,11 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 			printf("channel %s: ", ca_name(eha.chid));
 		}
 
+		//__COUT__ << "event_handler_args.type: " << eha.type << __E__;
 		switch (eha.type)
 		{
 		case DBR_CTRL_CHAR:
-			if (true)
+			if (DEBUG)
 			{
 				__COUT__ << "Response Type: DBR_CTRL_CHAR" << __E__;
 			}
@@ -229,7 +230,7 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 					((struct dbr_ctrl_char *)
 							eha.dbr)); // write the PV's control values to records
 			break;
-		case DBF_DOUBLE:
+		case DBR_DOUBLE:
 			if (DEBUG)
 			{
 				__COUT__ << "Response Type: DBR_DOUBLE" << __E__;
@@ -386,7 +387,6 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 						ca_name(eha.chid),
 						(char *)eha.dbr); // write the PV's value to records
 			}
-
 			break;
 		}
 		/* if get operation failed, print channel name and message */
@@ -710,6 +710,17 @@ void EpicsInterface::subscribeToChannel(std::string pvName, chtype subscriptionT
 	           this,
 	           &(mapOfPVInfo_.find(pvName)->second->eventID)),
 	       "EpicsInterface::subscribeToChannel() : ca_create_subscription");
+
+	SEVCHK(ca_create_subscription(
+	           DBR_STS_DOUBLE,//dbf_type_to_DBR(mapOfPVInfo_.find(pvName)->second->channelType),
+	           1,
+	           mapOfPVInfo_.find(pvName)->second->channelID,
+	           DBE_VALUE | DBE_ALARM | DBE_PROPERTY,
+	           eventCallback,
+	           this,
+	           &(mapOfPVInfo_.find(pvName)->second->eventID)),
+	       "EpicsInterface::subscribeToChannel() : ca_create_subscription");
+
 	if(DEBUG)
 	{
 		__GEN_COUT__ << "EpicsInterface::subscribeToChannel: Created Subscription to "
@@ -848,6 +859,7 @@ void EpicsInterface::writePVAlertToQueue(std::string pvName,
 	}
 	PVAlerts alert(time(0), status, severity);
 	mapOfPVInfo_.find(pvName)->second->alerts.push(alert);
+	//__GEN_COUT__ << "writePVAlertToQueue(): " << pvName << " " << status << " " << severity << __E__;
 
 	// debugConsole(pvName);
 
@@ -941,8 +953,8 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(std::string pvName)
 
 			time     = std::to_string(pv->dataCache[index].first);
 			value    = pv->dataCache[index].second;
-			status   = pv->alerts.front().status;
-			severity = pv->alerts.front().severity;
+			status   = pv->alerts.back().status;
+			severity = pv->alerts.back().severity;
 		}
 		else if(index == -1)
 		{
@@ -1127,9 +1139,9 @@ void EpicsInterface::dbSystemLogout()
 	}
 }
 
-std::vector<std::vector<std::string>> EpicsInterface::getPVHistory(std::string pvName)
+std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(std::string pvName)
 {
-	__GEN_COUT__ << "void EpicsInterface::getPVHistory() reached" << __E__;
+	__GEN_COUT__ << "void EpicsInterface::getChannelHistory() reached" << __E__;
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
@@ -1198,6 +1210,31 @@ std::vector<std::vector<std::string>> EpicsInterface::getPVHistory(std::string p
 	for (size_t i=0; i<history.size(); i++)
 	  history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
 	return history;
+}
+
+//========================================================================================================================
+// Check Alarms from Epics
+std::vector<std::vector<std::string>> EpicsInterface::checkAlarms()
+{
+	std::vector<std::vector<std::string>> channelAlarms_;
+	__COUT__ << "checkAlarms() initializing..." << std::endl;
+	for (auto channelName : getChannelList()){
+		auto name = getCurrentValue(channelName)[0];
+		auto value = getCurrentValue(channelName)[1];
+		auto status = getCurrentValue(channelName)[2];
+		auto severity = getCurrentValue(channelName)[3];
+		if (status == "MAJOR"){
+			std::vector<std::string> channelAlarm;
+			channelAlarm.push_back(name);
+			channelAlarm.push_back(value);
+			channelAlarm.push_back(status);
+			channelAlarm.push_back(severity);
+			channelAlarms_.push_back(channelAlarm);
+		}
+	}
+	__COUT__ << "checkAlarms().size(): " << channelAlarms_.size() << std::endl;
+
+	return channelAlarms_;
 }
 
 DEFINE_OTS_SLOW_CONTROLS(EpicsInterface)

@@ -108,18 +108,51 @@ class EpicsInterface : public SlowControlsVInterface
 	void initialize();
 	void destroy();
 
-	std::vector<std::string>   getPVList();
+	std::vector<std::string>   getChannelList();
 	std::string                getList(std::string format);
 	void                       subscribe(std::string pvName);
 	void                       subscribeJSON(std::string pvList);
 	void                       unsubscribe(std::string pvName);
 	std::array<std::string, 4> getCurrentValue(std::string pvName);
-	std::vector<std::vector<std::string>> getPVHistory(std::string pvName);
+	std::vector<std::vector<std::string>> getChannelHistory(std::string pvName);
 	std::array<std::string, 9> getSettings(std::string pvName);
+	std::vector<std::vector<std::string>> checkAlarms();
 
 	/* Antonio 09/24/2019 */
 	void dbSystemLogin(void);
 	void dbSystemLogout(void);
+
+	virtual void configure(void) override {
+		std::vector<std::vector<std::string>> alarms = checkAlarms();
+		if(alarms.size()) {__SS__ << "configure error. n. of Alarms: " << alarms.size(); __SS_THROW__};
+	}
+	virtual void halt(void) override {
+		std::vector<std::vector<std::string>> alarms = checkAlarms();
+		if(alarms.size()) {__SS__ << "halt error. n. of Alarms: " << alarms.size(); __SS_THROW__};
+	}
+	virtual void pause(void) override {
+		std::vector<std::vector<std::string>> alarms = checkAlarms();
+		if(alarms.size()) {__SS__ << "pause error. n. of Alarms: " << alarms.size(); __SS_THROW__};
+	}
+	virtual void resume(void) override {
+		std::vector<std::vector<std::string>> alarms = checkAlarms();
+		if(alarms.size()) {__SS__ << "resume error. n. of Alarms: " << alarms.size(); __SS_THROW__};
+	}
+	virtual void start(std::string runNumber) override  {
+		std::vector<std::vector<std::string>> alarms = checkAlarms();
+		if(alarms.size()) {__SS__ << "start error. n. of Alarms: " << alarms.size(); __SS_THROW__};
+	}
+	virtual void stop(void) override {
+		std::vector<std::vector<std::string>> alarms = checkAlarms();
+		if(alarms.size()) {__SS__ << "stop error. n. of Alarms: " << alarms.size(); __SS_THROW__};
+	}
+
+	// States
+	virtual bool running(void) override {
+		std::vector<std::vector<std::string>> alarms = checkAlarms();
+		if(alarms.size()) {return true;}
+		return false;
+	} //This is a workloop/thread, by default do nothing and end thread during running (Note: return true would repeat call)
 
   private:
 	bool checkIfPVExists(std::string pvName);
