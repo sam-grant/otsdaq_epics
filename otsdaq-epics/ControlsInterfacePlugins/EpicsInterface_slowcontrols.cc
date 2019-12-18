@@ -1116,7 +1116,7 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 /*****************************************************************************/
 void EpicsInterface::dbSystemLogin()
 {
-        dbconnStatus_ = 0;
+	dbconnStatus_ = 0;
 
 	dbconn = PQconnectdb("dbname=dcs_archive host=mu2edaq12 port=5432 user=dcs_reader password=ses3e-17!dcs_reader");
 		
@@ -1153,62 +1153,62 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(std::str
 		"SELECT FLOOR(EXTRACT(EPOCH FROM smpl_time)), float_val, status.name, severity.name, smpl_per FROM channel, sample, status, severity WHERE channel.channel_id = sample.channel_id AND sample.severity_id = severity.severity_id  AND sample.status_id = status.status_id AND channel.name = \'%s\' ORDER BY smpl_time desc LIMIT 10", pvName.c_str());
 
 		if ( dbconnStatus_ != 1){
-		  __GEN_COUT__ << "void EpicsInterface::getPVHistory() reached" << __E__;
-		  std::vector<std::vector<std::string>> history;
-		  history.resize(1);
-		  for (size_t i=0; i<history.size(); i++)
-		    history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
-		  return history;
+			__GEN_COUT__ << "void EpicsInterface::getPVHistory() reached" << __E__;
+			std::vector<std::vector<std::string>> history;
+			history.resize(1);
+			for (size_t i=0; i<history.size(); i++)
+			history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
+			return history;
 		}
 		else
 		{
-		  res = PQexec(dbconn, buffer);
+			res = PQexec(dbconn, buffer);
 		}
 
 		if (PQresultStatus(res) == PGRES_TUPLES_OK)
 		{
-		  std::string s;
-		  std::vector<std::vector<std::string>> history;
+			std::string s;
+			std::vector<std::vector<std::string>> history;
 
-		  /* first, print out the attribute names */
-		  int nFields = PQnfields(res);
-		  history.resize(PQntuples(res));
+			/* first, print out the attribute names */
+			int nFields = PQnfields(res);
+		  	history.resize(PQntuples(res));
         	  
-		  /* next, print out the rows */
-		  for (int i = 0; i < PQntuples(res); i++)
-		    {
-		      history[i].resize(nFields);
-		      for (int j = 0; j < nFields; j++)
+		  	/* next, print out the rows */
+			for (int i = 0; i < PQntuples(res); i++)
 			{
-			  history[i][j] = PQgetvalue(res, i, j);
-			  s.append( PQgetvalue(res, i, j));
-			  s.append(" ");
-	       	      }
-		      s.append("\n");
+		    	history[i].resize(nFields);
+		    	for (int j = 0; j < nFields; j++)
+				{
+					history[i][j] = PQgetvalue(res, i, j);
+					s.append( PQgetvalue(res, i, j));
+					s.append(" ");
+	       		}
+			 	s.append("\n");
 		    }
-		  __GEN_COUT__ << s << __E__;
-		  PQclear(res);
-		  return history;
+			__GEN_COUT__ << s << __E__;
+			PQclear(res);
+			return history;
 		}
 		else
-		  {
-		    __GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
-		    PQclear(res);
-		  }
+		{
+			__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
+			PQclear(res);
+		}
 
 		PQclear(res);
 	}
 	else
-	  {
-	    __GEN_COUT__ << pvName << " was not found!" << __E__;
-	    __GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
-	    subscribe(pvName);
-	  }
+	{
+		__GEN_COUT__ << pvName << " was not found!" << __E__;
+		__GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
+		subscribe(pvName);
+	}
 
 	std::vector<std::vector<std::string>> history;
 	history.resize(1);
 	for (size_t i=0; i<history.size(); i++)
-	  history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
+		history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
 	return history;
 }
 
@@ -1223,7 +1223,7 @@ std::vector<std::vector<std::string>> EpicsInterface::checkAlarms()
 		auto value = getCurrentValue(channelName)[1];
 		auto status = getCurrentValue(channelName)[2];
 		auto severity = getCurrentValue(channelName)[3];
-		if (status == "MAJOR"){
+		if (severity == "MINOR"){
 			std::vector<std::string> channelAlarm;
 			channelAlarm.push_back(name);
 			channelAlarm.push_back(value);
