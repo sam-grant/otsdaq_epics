@@ -32,10 +32,12 @@ end_product_list
 qualifier    	   otsdaq	 otsdaq_utilities	 epics	postgresql	pqxx			xerces_c 	notes
 e19:s82:prof       e19:s82:prof  e19:s82:prof            e19	p2715a		e19:p2715a:prof		e19:prof	-std=c++17
 e19:s82:debug      e19:s82:debug e19:s82:debug           e19	p2715a		e19:p2715a:debug	e19:debug  	-std=c++17
-e15:s67:prof       e15:s67:prof  e15:s67:prof  		 e15	p2715a		e19:p2715a:prof		e15:prof   	-std=c++14
-e15:s67:debug      e15:s67:debug e15:s67:debug     	 e15    p2715a		e19:p2715a:debug	e15:debug  	-std=c++14
-e15:s65:prof       e15:s65:prof  e15:s65:prof   	 e15	p2715a		e19:p2715a:prof		e15:prof	-std=c++14
-e15:s65:debug      e15:s65:debug e15:s65:debug        	 e15	p2715a		e19:p2715a:debug	e15:debug  	-std=c++14
+e17:s85:prof       e17:s85:prof  e17:s85:prof            e17    p2715a          e17:p2715a:prof         e17:prof        -std=c++17
+e17:s85:debug      e17:s85:debug e17:s85:debug           e17    p2715a          e17:p2715a:debug        e17:debug       -std=c++17
+e15:s67:prof       e15:s67:prof  e15:s67:prof  		 e15	p2715a		e15:p2715a:prof		e15:prof   	-std=c++14
+e15:s67:debug      e15:s67:debug e15:s67:debug     	 e15    p2715a		e15:p2715a:debug	e15:debug  	-std=c++14
+e15:s65:prof       e15:s65:prof  e15:s65:prof   	 e15	p2715a		e15:p2715a:prof		e15:prof	-std=c++14
+e15:s65:debug      e15:s65:debug e15:s65:debug        	 e15	p2715a		e15:p2715a:debug	e15:debug  	-std=c++14
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
