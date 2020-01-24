@@ -82,7 +82,9 @@ struct PVInfo
 	                          // we open the viewer for the first time - get to see
 	                          // what is DC'd
 	std::queue<PVAlerts> alerts;
-	struct dbr_ctrl_char settings;
+	//struct dbr_ctrl_char settings;
+	struct dbr_ctrl_double settings;
+
 };
 
 /* Antonio 09/24/2019 */
@@ -164,7 +166,8 @@ class EpicsInterface : public SlowControlsVInterface
 	void cancelSubscriptionToChannel(std::string pvName);
 	void readValueFromPV(std::string pvName);
 	void writePVValueToRecord(std::string pvName, std::string pdata);
-	void writePVControlValueToRecord(std::string pvName, struct dbr_ctrl_char* pdata);
+	//void writePVControlValueToRecord(std::string pvName, struct dbr_ctrl_char* pdata);
+	void writePVControlValueToRecord(std::string pvName, struct dbr_ctrl_double* pdata);
 	void writePVAlertToQueue(std::string pvName,
 	                         const char* status,
 	                         const char* severity);

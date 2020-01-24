@@ -144,7 +144,7 @@ void EpicsInterface::subscribe(std::string pvName)
 		return;
 	}
 	createChannel(pvName);
-	sleep(1); //what makes the console hang at startup
+	sleep(0.1); //what makes the console hang at startup
 	subscribeToChannel(pvName, mapOfPVInfo_.find(pvName)->second->channelType);
 	//SEVCHK(ca_poll(), "EpicsInterface::subscribe() : ca_poll");  //print outs that handle takeover the console; can make our own error handler
 	return;
@@ -219,15 +219,26 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 		//__COUT__ << "event_handler_args.type: " << eha.type << __E__;
 		switch (eha.type)
 		{
-		case DBR_CTRL_CHAR:
+		// case DBR_CTRL_CHAR:
+		// 	if (DEBUG)
+		// 	{
+		// 		__COUT__ << "Response Type: DBR_CTRL_CHAR" << __E__;
+		// 	}
+		// 	((EpicsInterface *)eha.usr)
+		// 		->writePVControlValueToRecord(
+		// 			ca_name(eha.chid),
+		// 			((struct dbr_ctrl_char *)
+		// 					eha.dbr)); // write the PV's control values to records
+		// 	break;
+		case DBR_CTRL_DOUBLE:
 			if (DEBUG)
 			{
-				__COUT__ << "Response Type: DBR_CTRL_CHAR" << __E__;
+				__COUT__ << "Response Type: DBR_CTRL_DOUBLE" << __E__;
 			}
 			((EpicsInterface *)eha.usr)
 				->writePVControlValueToRecord(
 					ca_name(eha.chid),
-					((struct dbr_ctrl_char *)
+					((struct dbr_ctrl_double *)
 							eha.dbr)); // write the PV's control values to records
 			break;
 		case DBR_DOUBLE:
@@ -529,10 +540,10 @@ void EpicsInterface::loadListOfPVs()
 
 	// get parameters (e.g. HIHI("upper alarm") HI("upper warning") LOLO("lower
 	// alarm")) for each pv
-	for(auto pv : mapOfPVInfo_)
-	{
-		getControlValues(pv.first);
-	}
+	// for(auto pv : mapOfPVInfo_)
+	// {
+	// 	getControlValues(pv.first);
+	// }
 
 	__GEN_COUT__ << "Finished reading file and subscribing to pvs!" << __E__;
 	SEVCHK(ca_pend_event(0.0), "EpicsInterface::subscribe() : ca_pend_event(0.0)"); //Start listening
@@ -552,7 +563,9 @@ void EpicsInterface::getControlValues(std::string pvName)
 		return;
 	}
 
-	SEVCHK(ca_array_get_callback(DBR_CTRL_CHAR,
+	SEVCHK(ca_array_get_callback(
+								//DBR_CTRL_CHAR,
+								DBR_CTRL_DOUBLE,
 	                             0,
 	                             mapOfPVInfo_.find(pvName)->second->channelID,
 	                             eventCallback,
@@ -709,10 +722,20 @@ void EpicsInterface::subscribeToChannel(std::string pvName, chtype subscriptionT
 	           eventCallback,
 	           this,
 	           &(mapOfPVInfo_.find(pvName)->second->eventID)),
-	       "EpicsInterface::subscribeToChannel() : ca_create_subscription");
+	       "EpicsInterface::subscribeToChannel() : ca_create_subscription dbf_type_to_DBR");
 
 	SEVCHK(ca_create_subscription(
-	           DBR_STS_DOUBLE,//dbf_type_to_DBR(mapOfPVInfo_.find(pvName)->second->channelType),
+	           DBR_STS_DOUBLE,
+	           1,
+	           mapOfPVInfo_.find(pvName)->second->channelID,
+	           DBE_VALUE | DBE_ALARM | DBE_PROPERTY,
+	           eventCallback,
+	           this,
+	           &(mapOfPVInfo_.find(pvName)->second->eventID)),
+	       "EpicsInterface::subscribeToChannel() : ca_create_subscription DBR_STS_DOUBLE");
+
+	SEVCHK(ca_create_subscription(
+	           DBR_CTRL_DOUBLE,
 	           1,
 	           mapOfPVInfo_.find(pvName)->second->channelID,
 	           DBE_VALUE | DBE_ALARM | DBE_PROPERTY,
@@ -775,7 +798,8 @@ void EpicsInterface::readValueFromPV(std::string pvName)
 }
 
 void EpicsInterface::writePVControlValueToRecord(std::string           pvName,
-                                                 struct dbr_ctrl_char* pdata)
+//                                                 struct dbr_ctrl_char* pdata)
+                                                 struct dbr_ctrl_double* pdata)
 {
 	if(DEBUG)
 	{
@@ -789,8 +813,9 @@ void EpicsInterface::writePVControlValueToRecord(std::string           pvName,
 	}
 	mapOfPVInfo_.find(pvName)->second->settings = *pdata;
 
-	if(true)
+	if(DEBUG)
 	{
+		__GEN_COUT__ << "pvName: " << pvName << __E__;
 		__GEN_COUT__ << "status: " << pdata->status << __E__;
 		__GEN_COUT__ << "severity: " << pdata->severity << __E__;
 		__GEN_COUT__ << "units: " << pdata->units << __E__;
@@ -802,7 +827,7 @@ void EpicsInterface::writePVControlValueToRecord(std::string           pvName,
 		__GEN_COUT__ << "lower alarm limit: " << pdata->lower_alarm_limit << __E__;
 		__GEN_COUT__ << "upper control limit: " << pdata->upper_ctrl_limit << __E__;
 		__GEN_COUT__ << "lower control limit: " << pdata->lower_ctrl_limit << __E__;
-		__GEN_COUT__ << "RISC_pad: " << pdata->RISC_pad << __E__;
+		//__GEN_COUT__ << "RISC_pad: " << pdata->RISC_pad << __E__;
 		__GEN_COUT__ << "Value: " << pdata->value << __E__;
 	}
 	return;
@@ -842,7 +867,6 @@ void EpicsInterface::writePVValueToRecord(std::string pvName, std::string pdata)
 		pvInfo->dataCache[0]          = currentRecord;
 		pvInfo->mostRecentBufferIndex = 0;
 	}
-	// debugConsole(pvName);
 	// debugConsole(pvName);
 
 	return;
@@ -1023,7 +1047,8 @@ std::array<std::string, 9> EpicsInterface::getSettings(std::string pvName)
 			   NULL)  // channel might exist, subscription doesn't so create a
 			          // subscription
 			{
-				dbr_ctrl_char* set = &mapOfPVInfo_.find(pvName)->second->settings;
+				//dbr_ctrl_char* set = &mapOfPVInfo_.find(pvName)->second->settings;
+				dbr_ctrl_double* set = &mapOfPVInfo_.find(pvName)->second->settings;
 
 				//sprintf(&units[0],"%d",set->units);
 				units = set->units;
@@ -1156,8 +1181,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(std::str
 			__GEN_COUT__ << "void EpicsInterface::getPVHistory() reached" << __E__;
 			std::vector<std::vector<std::string>> history;
 			history.resize(1);
-			for (size_t i=0; i<history.size(); i++)
-			history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
+			history[0]= {"PV Not Found", "NF", "N/a", "N/a"};
 			return history;
 		}
 		else
@@ -1172,8 +1196,15 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(std::str
 
 			/* first, print out the attribute names */
 			int nFields = PQnfields(res);
-		  	history.resize(PQntuples(res));
-        	  
+		  	if (PQntuples(res) <= 0)
+			{
+				history.resize(1);
+				history[0]= {"PV Not Found", "NF", "N/a", "N/a"};
+				return history;
+			}
+
+			history.resize(PQntuples(res));
+
 		  	/* next, print out the rows */
 			for (int i = 0; i < PQntuples(res); i++)
 			{
@@ -1207,8 +1238,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(std::str
 
 	std::vector<std::vector<std::string>> history;
 	history.resize(1);
-	for (size_t i=0; i<history.size(); i++)
-		history[i]= {"PV Not Found", "NF", "N/a", "N/a"};
+	history[0]= {"PV Not Found", "NF", "N/a", "N/a"};
 	return history;
 }
 
