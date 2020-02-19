@@ -1,6 +1,7 @@
 #ifndef _ots_EpicsInterface_h
 #define _ots_EpicsInterface_h
 
+#include "cadef.h"
 #include <ctime>
 #include <fstream>
 #include <map>
@@ -8,24 +9,26 @@
 #include <thread>
 #include <utility>
 #include <vector>
-#include "cadef.h"
 
 #include <arpa/inet.h>
+#include <dirent.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <string>
-#include <dirent.h>
 
 #include "otsdaq/SlowControlsCore/SlowControlsVInterface.h"
 
+// clang-format off
+
 struct dbr_ctrl_char;
+
 
 namespace ots
 {
@@ -106,86 +109,73 @@ class EpicsInterface : public SlowControlsVInterface
 	    const ConfigurationTree& theXDAQContextConfigTree,
 	    const std::string&       controlsConfigurationPath);
 	~EpicsInterface();
+	
+	static const std::string 				EPICS_NO_ALARM;	
+	static const std::string 				EPICS_INVALID_ALARM;
+	static const std::string 				EPICS_MINOR_ALARM;
+	static const std::string 				EPICS_MAJOR_ALARM;
 
-	void initialize();
-	void destroy();
+	void 									initialize				(void);
+	void 									destroy					(void);
 
-	std::vector<std::string>   getChannelList();
-	std::string                getList(std::string format);
-	void                       subscribe(std::string pvName);
-	void                       subscribeJSON(std::string pvList);
-	void                       unsubscribe(std::string pvName);
-	std::array<std::string, 4> getCurrentValue(std::string pvName);
-	std::vector<std::vector<std::string>> getChannelHistory(std::string pvName);
-	std::array<std::string, 9> getSettings(std::string pvName);
-	std::vector<std::vector<std::string>> checkAlarms();
+	std::vector<std::string>   				getChannelList			(void);
+	std::string               				getList					(const std::string& format);
+	void                       				subscribe				(const std::string& pvName);
+	void                       				subscribeJSON			(const std::string& JSONpvList);
+	void                       				unsubscribe				(const std::string& pvName);
+	std::array<std::string, 4> 				getCurrentValue			(const std::string& pvName);
+	std::vector<std::vector<std::string>> 	getChannelHistory		(const std::string& pvName);
+	std::array<std::string, 9> 				getSettings				(const std::string& pvName);
+	std::vector<std::vector<std::string>> 	checkAlarms				(void);
+	std::vector<std::string> 				checkAlarm				(const std::string& pvName, bool ignoreMinor = false);
 
-	/* Antonio 09/24/2019 */
-	void dbSystemLogin(void);
-	void dbSystemLogout(void);
+	void 									dbSystemLogin			(void);
+	void 									dbSystemLogout			(void);
 
-	virtual void configure(void) override {
-		std::vector<std::vector<std::string>> alarms = checkAlarms();
-		if(alarms.size()) {__SS__ << "configure error. n. of Alarms: " << alarms.size(); __SS_THROW__};
-	}
-	virtual void halt(void) override {
-		std::vector<std::vector<std::string>> alarms = checkAlarms();
-		if(alarms.size()) {__SS__ << "halt error. n. of Alarms: " << alarms.size(); __SS_THROW__};
-	}
-	virtual void pause(void) override {
-		std::vector<std::vector<std::string>> alarms = checkAlarms();
-		if(alarms.size()) {__SS__ << "pause error. n. of Alarms: " << alarms.size(); __SS_THROW__};
-	}
-	virtual void resume(void) override {
-		std::vector<std::vector<std::string>> alarms = checkAlarms();
-		if(alarms.size()) {__SS__ << "resume error. n. of Alarms: " << alarms.size(); __SS_THROW__};
-	}
-	virtual void start(std::string runNumber) override  {
-		std::vector<std::vector<std::string>> alarms = checkAlarms();
-		if(alarms.size()) {__SS__ << "start error. n. of Alarms: " << alarms.size(); __SS_THROW__};
-	}
-	virtual void stop(void) override {
-		std::vector<std::vector<std::string>> alarms = checkAlarms();
-		if(alarms.size()) {__SS__ << "stop error. n. of Alarms: " << alarms.size(); __SS_THROW__};
-	}
+ private:
+	void 									handleAlarmsForFSM		(const std::string& fsmTransitionName, ConfigurationTree LinkToAlarmsToMonitor);
+
+ public:
+
+	virtual void 							configure				(void) override { handleAlarmsForFSM("configure",	getSelfNode().getNode("LinkToConfigureAlarmsToMonitorTable")); }
+	virtual void 							halt					(void) override { handleAlarmsForFSM("halt",		getSelfNode().getNode("LinkToHaltAlarmsToMonitorTable")); }
+	virtual void 							pause					(void) override { handleAlarmsForFSM("pause",		getSelfNode().getNode("LinkToPauseAlarmsToMonitorTable")); }
+	virtual void 							resume					(void) override { handleAlarmsForFSM("resume",		getSelfNode().getNode("LinkToResumeAlarmsToMonitorTable")); }
+	virtual void 							start					(std::string runNumber) override  { handleAlarmsForFSM("start",getSelfNode().getNode("LinkToStartAlarmsToMonitorTable")); }
+	virtual void 							stop					(void) override { handleAlarmsForFSM("stop",		getSelfNode().getNode("LinkToStopAlarmsToMonitorTable")); }
 
 	// States
-	virtual bool running(void) override {
-		std::vector<std::vector<std::string>> alarms = checkAlarms();
-		if(alarms.size()) {return true;}
-		return false;
-	} //This is a workloop/thread, by default do nothing and end thread during running (Note: return true would repeat call)
+	virtual bool 							running					(void) override { handleAlarmsForFSM("running",		getSelfNode().getNode("LinkToRunningAlarmsToMonitorTable")); sleep(1); return true;}
+	//This is a workloop/thread, by default do nothing and end thread during running (Note: return true would repeat call)
 
   private:
-	bool checkIfPVExists(std::string pvName);
-	void loadListOfPVs();
-	void getControlValues(std::string pvName);
-	void createChannel(std::string pvName);
-	void destroyChannel(std::string pvName);
-	void subscribeToChannel(std::string pvName, chtype subscriptionType);
-	void cancelSubscriptionToChannel(std::string pvName);
-	void readValueFromPV(std::string pvName);
-	void writePVValueToRecord(std::string pvName, std::string pdata);
+	bool 									checkIfPVExists			(const std::string& pvName);
+	void 									loadListOfPVs			(void);
+	void 									getControlValues		(const std::string& pvName);
+	void									createChannel			(const std::string& pvName);
+	void 									destroyChannel			(const std::string& pvName);
+	void 									subscribeToChannel		(const std::string& pvName, chtype subscriptionType);
+	void 									cancelSubscriptionToChannel(const std::string& pvName);
+	void 									readValueFromPV			(const std::string& pvName);
+	void 									writePVValueToRecord	(const std::string& pvName, const std::string& pdata);
 	//void writePVControlValueToRecord(std::string pvName, struct dbr_ctrl_char* pdata);
-	void writePVControlValueToRecord(std::string pvName, struct dbr_ctrl_double* pdata);
-	void writePVAlertToQueue(std::string pvName,
-	                         const char* status,
-	                         const char* severity);
-	void readPVRecord(std::string pvName);
-	void debugConsole(std::string pvName);
-	static void eventCallback(struct event_handler_args eha);
-	static void staticChannelCallbackHandler(struct connection_handler_args cha);
-	static void accessRightsCallback(struct access_rights_handler_args args);
-	static void printChidInfo(chid chid, std::string message);
-	void        channelCallbackHandler(struct connection_handler_args& cha);
-	void        popQueue(std::string pvName);
+	void 									writePVControlValueToRecord(const std::string& pvName, struct dbr_ctrl_double* pdata);
+	void 									writePVAlertToQueue		(const std::string& pvName, const char* status, const char* severity);
+	void 									readPVRecord			(const std::string& pvName);
+	void 									debugConsole			(const std::string& pvName);
+	static void								eventCallback			(struct event_handler_args eha);
+	static void 							staticChannelCallbackHandler(struct connection_handler_args cha);
+	static void								accessRightsCallback	(struct access_rights_handler_args args);
+	static void 							printChidInfo			(chid chid, const std::string& message);
+	void        							channelCallbackHandler	(struct connection_handler_args& cha);
+	void        							popQueue				(const std::string& pvName);
 
   private:
 	//  std::map<chid, std::string> mapOfPVs_;
-	std::map<std::string, PVInfo*> mapOfPVInfo_;
-	int                            status_;
+	std::map<std::string, PVInfo*> 			mapOfPVInfo_;
+	int                            			status_;
 };
-
-}  // namespace ots
+// clang-format on
+} // namespace ots
 
 #endif
