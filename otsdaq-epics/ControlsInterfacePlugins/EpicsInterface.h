@@ -1,7 +1,6 @@
 #ifndef _ots_EpicsInterface_h
 #define _ots_EpicsInterface_h
 
-#include "cadef.h"
 #include <ctime>
 #include <fstream>
 #include <map>
@@ -9,6 +8,7 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include "cadef.h"
 
 #include <arpa/inet.h>
 #include <dirent.h>
@@ -18,10 +18,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <string>
 
 #include "otsdaq/SlowControlsCore/SlowControlsVInterface.h"
 
@@ -137,7 +137,7 @@ class EpicsInterface : public SlowControlsVInterface
 
  public:
 
-	virtual void 							configure				(void) override { handleAlarmsForFSM("configure",	getSelfNode().getNode("LinkToConfigureAlarmsToMonitorTable")); }
+	virtual void 							configure				(void) override;
 	virtual void 							halt					(void) override { handleAlarmsForFSM("halt",		getSelfNode().getNode("LinkToHaltAlarmsToMonitorTable")); }
 	virtual void 							pause					(void) override { handleAlarmsForFSM("pause",		getSelfNode().getNode("LinkToPauseAlarmsToMonitorTable")); }
 	virtual void 							resume					(void) override { handleAlarmsForFSM("resume",		getSelfNode().getNode("LinkToResumeAlarmsToMonitorTable")); }
@@ -176,6 +176,6 @@ class EpicsInterface : public SlowControlsVInterface
 	int                            			status_;
 };
 // clang-format on
-} // namespace ots
+}  // namespace ots
 
 #endif
