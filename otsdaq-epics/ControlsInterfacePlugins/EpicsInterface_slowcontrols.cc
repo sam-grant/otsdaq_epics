@@ -1,6 +1,9 @@
 #include "alarm.h"  //Holds strings that we can use to access the alarm status, severity, and parameters
 #include "otsdaq-epics/ControlsInterfacePlugins/EpicsInterface.h"
 #include "otsdaq/Macros/SlowControlsPluginMacros.h"
+#include "otsdaq/TablePlugins/SlowControlsTableBase/SlowControlsTableBase.h"
+#include "otsdaq/ConfigurationInterface/ConfigurationManager.h"
+
 //#include "/mu2e/ups/epics/v3_15_4/Linux64bit+2.6-2.12-e10/include/alarm.h"
 //#include "alarmString.h"
 #include "cadef.h"  //EPICS Channel Access:
@@ -259,16 +262,16 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 			}
 			((EpicsInterface*)eha.usr)
 			    ->writePVAlertToQueue(ca_name(eha.chid), epicsAlarmConditionStrings[pBuf->sstrval.status], epicsAlarmSeverityStrings[pBuf->sstrval.severity]);
-			/*if(DEBUG)
-	  {
-	  printf("current %s:\n", eha.count > 1?"values":"value");
-	  for (i = 0; i < eha.count; i++)
-	  {
-	  printf("%s\t", *(&(pBuf->sstrval.value) + i));
-	  if ((i+1)%6 == 0) printf("\n");
-	  }
-	  printf("\n");
-	  }*/
+		/*if(DEBUG)
+		{
+		printf("current %s:\n", eha.count > 1?"values":"value");
+		for (i = 0; i < eha.count; i++)
+		{
+		printf("%s\t", *(&(pBuf->sstrval.value) + i));
+		if ((i+1)%6 == 0) printf("\n");
+		}
+		printf("\n");
+		}*/
 			break;
 		case DBR_STS_SHORT:
 			if(DEBUG)
@@ -436,6 +439,7 @@ bool EpicsInterface::checkIfPVExists(const std::string& pvName)
 void EpicsInterface::loadListOfPVs()
 {
 	__GEN_COUT__ << "LOADING LIST OF PVS!!!!";
+/*
 	std::string              pv_csv_dir_path = PV_CSV_DIR;
 	std::vector<std::string> files           = std::vector<std::string>();
 	DIR*                     dp;
@@ -510,6 +514,45 @@ void EpicsInterface::loadListOfPVs()
 			}
 		}
 		__GEN_COUT__ << "Finished reading: " << pv_list_file << __E__;
+	}
+*/
+	// HERE GET PVS LIST FROM DB
+	if(dbconnStatus_ == 1)
+	{
+		PGresult*   res;
+		char        buffer[1024];
+		std::string pv_name;
+		std::string cluster = "Mu2e";
+
+		__GEN_COUT__ << "Reading database PVS List" << __E__;
+		int num = snprintf(buffer, sizeof(buffer), "SELECT COUNT(%s) FROM channel", std::string("channel_id").c_str());
+		res     = PQexec(dbconn, buffer);
+
+		if(PQresultStatus(res) == PGRES_TUPLES_OK)
+		{
+			int rows = 0;
+			rows = std::stoi(PQgetvalue(res, 0, 0));
+			PQclear(res);
+			for (int i = 1; i <= rows; i++)
+			{
+				int num = snprintf(buffer, sizeof(buffer), "SELECT name FROM channel WHERE channel_id = '%d'", i);
+				res     = PQexec(dbconn, buffer);
+				if(PQresultStatus(res) == PGRES_TUPLES_OK)
+				{
+					pv_name = PQgetvalue(res, 0, 0);
+					mapOfPVInfo_[pv_name] = new PVInfo(DBR_STRING);
+				}
+				else
+					__GEN_COUT__ << "SELECT failed: mapOfPVInfo_ not filled for channel_id: "<< i << PQerrorMessage(dbconn) << __E__;
+			}
+			__GEN_COUT__ << "Finished reading database PVs List!" << __E__;
+			PQclear(res);
+		}
+		else
+		{
+			__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
+			PQclear(res);
+		}
 	}
 
 	__GEN_COUT__ << "Here is our pv list!" << __E__;
@@ -1333,7 +1376,115 @@ void EpicsInterface::configure()
 	//  2. SQL insert or modify of ROW for PV
 	//	3. force restart SW-IOC instance
 	//  4. mark 'dirty' for EPICS cronjob restart or archiver and
+	
+	std::string slowControlsChannelsSourceTablesString = // "DTCInterfaceTable,CFOInterfaceTable"
+		getSelfNode().getNode("SlowControlsChannelSourceTableList").getValueWithDefault<std::string>("");
+		
+	__COUTV__(slowControlsChannelsSourceTablesString);
+	
+	std::vector<std::string> slowControlsChannelsSourceTables = 
+		StringMacros::getVectorFromString(slowControlsChannelsSourceTablesString);
+	__COUTV__(StringMacros::vectorToString(slowControlsChannelsSourceTables));
+	
+	for(const auto& slowControlsChannelsSourceTable:slowControlsChannelsSourceTables)
+	{
+		
+		__COUTV__(slowControlsChannelsSourceTable);
+		
+		const SlowControlsTableBase* slowControlsTable =
+			getConfigurationManager()->getTable<SlowControlsTableBase>(slowControlsChannelsSourceTable);
 
+		if(slowControlsTable->slowControlsChannelListHasChanged())
+		{
+			__COUT__ << "Handling channel list change!" << __E__;
+			
+			std::vector<std::string> channelNames;
+			slowControlsTable->getSlowControlsChannelList(channelNames);
+			
+			for(const auto& pvName : channelNames)
+			{
+				std::string	descr				= "";
+				int			grp_id				= 0;
+				int 		smpl_mode_id		= 0;
+				double		smpl_val			= 0.;
+				double		smpl_per			= 0.;
+				int			retent_id			= 0;
+				double		retent_val			= 0.;
+
+				double		low_disp_rng 		= 0.;
+				double		high_disp_rng		= 0.;
+				double		low_warn_lmt 		= 0.;
+				double		high_warn_lmt 		= 0.;
+				double		low_alarm_lmt 		= 0.;
+				double		high_alarm_lmt 		= 0.;
+				int			prec 				= 0.;
+				std::string unit	= "";		
+				if(checkIfPVExists(pvName))
+				{
+					__SS__ << "While configuring and check for new PVs, PV name '" << pvName << "' was found in PV list!" << __E__;
+					__SS_THROW__;
+				}
+				mapOfPVInfo_[pvName] = new PVInfo(DBR_STRING);
+				__COUT__ << "new PV '" << pvName << "' found! Now subscribing" << __E__;
+				subscribe(pvName);
+				
+				if(dbconnStatus_ == 1)
+				{
+					PGresult*   res;
+					char        buffer[1024];
+					__COUT__ << "Writing new PV in the Archiver Database" << __E__;
+					int num = snprintf(buffer, sizeof(buffer),
+					"INSERT INTO channel(					\
+										  name				\
+										, descr				\
+										, grp_id			\
+										, smpl_mode_id		\
+										, smpl_val			\
+										, smpl_per			\
+										, retent_id			\
+										, retent_val)		\
+					VALUES (%s, %s, %d, %d, %f, %f, %d, %f);", pvName.c_str() ,descr.c_str(), grp_id, smpl_mode_id, smpl_val, smpl_per, retent_id, retent_val);
+					res     = PQexec(dbconn, buffer);
+
+					if(PQresultStatus(res) != PGRES_TUPLES_OK)
+					{
+						PQclear(res);
+						__SS__ << "configure(): CHANNEL INSERT INTO DATABASE FAILED!!! " << __E__;
+						__SS_THROW__;
+					}
+
+					PQclear(res);
+		
+					num = snprintf(buffer, sizeof(buffer),
+					"INSERT INTO num_metadata(				\
+										  low_disp_rng		\
+										, high_disp_rng		\
+										, low_warn_lmt		\
+										, high_warn_lmt		\
+										, low_alarm_lmt		\
+										, high_alarm_lmt	\
+										,prec				\
+										, unit)				\
+					VALUES (%f,%f,%f,%f,%f,%f,%d,%s);",low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit.c_str());
+					res     = PQexec(dbconn, buffer);
+
+					if(PQresultStatus(res) != PGRES_TUPLES_OK)
+					{
+						PQclear(res);
+						__SS__ << "configure(): CHANNEL INSERT INTO DATABASE FAILED!!! " << __E__;
+						__SS_THROW__;
+					}					
+					PQclear(res);
+				}
+				else
+				{
+					__SS__ << "configure(): DATABASE CONNECTION FAILED!!! " << __E__;
+					__SS_THROW__;
+		
+				}
+			} //end channel name loop
+		}
+	} //end slowControlsChannelsSourceTables loop
 }  // end configure()
 
 DEFINE_OTS_SLOW_CONTROLS(EpicsInterface)

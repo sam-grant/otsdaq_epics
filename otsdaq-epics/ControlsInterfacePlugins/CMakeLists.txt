@@ -18,6 +18,7 @@ include_directories($ENV{EPICS_BASE}/include/os/Linux)
 include_directories($ENV{EPICS_BASE}/include/compiler/gcc)
 include_directories($ENV{EPICS_BASE}/include/lib/linux-x86_64)
 include_directories($ENV{XERCES_C_INC})
+
 simple_plugin(EpicsInterface "slowcontrols"	
 	 ${EPICS_CA}
 	 ${EPICS_COM}
@@ -26,6 +27,7 @@ simple_plugin(EpicsInterface "slowcontrols"
 	 PluginMakers
 	 Configurable
 	 ConfigurationInterface
+	 SlowControlsTableBase
 	 $ENV{XERCES_C_LIB}/libxerces-c.so
 	 ${MF_MESSAGELOGGER}
 	 $ENV{POSTGRESQL_LIBRARIES}/libpq.so
