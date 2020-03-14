@@ -1152,7 +1152,8 @@ void EpicsInterface::dbSystemLogin()
 
 	dbconn = PQconnectdb(
 	    "dbname=dcs_archive host=mu2edaq12 port=5432 "
-	    "user=dcs_reader password=ses3e-17!dcs_reader");
+	    "user=dcs_writer password=ses3e-17!dcs_writer");
+	    //"user=dcs_reader password=ses3e-17!dcs_reader");
 
 	if(PQstatus(dbconn) == CONNECTION_BAD)
 	{
@@ -1294,7 +1295,6 @@ std::vector<std::string> EpicsInterface::checkAlarm(const std::string& pvName, b
 
 	// if here, alarm!
 	return std::vector<std::string>({pvIt->first, time, value, status, severity});
-
 }  // end checkAlarm()
 
 //========================================================================================================================
@@ -1369,118 +1369,252 @@ void EpicsInterface::configure()
 {
 	handleAlarmsForFSM("configure", getSelfNode().getNode("LinkToConfigureAlarmsToMonitorTable"));
 
-	__COUT__ << "Preparing EPICS for PVs..." << __E__;
+	__COUT__ << "configure(): Preparing EPICS for PVs..." << __E__;
 
 	// Steps to update EPICS
 	//	1. DTC_TABLE handles: scp *.dbg mu2edcs:mu2edaq01.fnal.gov:mu2e-dcs/apps/OTSReader/db/
 	//  2. SQL insert or modify of ROW for PV
 	//	3. force restart SW-IOC instance
 	//  4. mark 'dirty' for EPICS cronjob restart or archiver and
-	
+
 	std::string slowControlsChannelsSourceTablesString = // "DTCInterfaceTable,CFOInterfaceTable"
 		getSelfNode().getNode("SlowControlsChannelSourceTableList").getValueWithDefault<std::string>("");
-		
+
 	__COUTV__(slowControlsChannelsSourceTablesString);
-	
+
 	std::vector<std::string> slowControlsChannelsSourceTables = 
 		StringMacros::getVectorFromString(slowControlsChannelsSourceTablesString);
 	__COUTV__(StringMacros::vectorToString(slowControlsChannelsSourceTables));
-	
+
 	for(const auto& slowControlsChannelsSourceTable:slowControlsChannelsSourceTables)
 	{
-		
 		__COUTV__(slowControlsChannelsSourceTable);
-		
+
 		const SlowControlsTableBase* slowControlsTable =
 			getConfigurationManager()->getTable<SlowControlsTableBase>(slowControlsChannelsSourceTable);
 
 		if(slowControlsTable->slowControlsChannelListHasChanged())
 		{
-			__COUT__ << "Handling channel list change!" << __E__;
-			
+			__COUT__ << "configure(): Handling channel list change!" << __E__;
+
 			std::vector<std::string> channelNames;
 			slowControlsTable->getSlowControlsChannelList(channelNames);
-			
+
 			for(const auto& pvName : channelNames)
 			{
 				std::string	descr				= "";
-				int			grp_id				= 0;
-				int 		smpl_mode_id		= 0;
+				int			grp_id				= 4;
+				int 		smpl_mode_id		= 1;
 				double		smpl_val			= 0.;
-				double		smpl_per			= 0.;
-				int			retent_id			= 0;
-				double		retent_val			= 0.;
+				double		smpl_per			= 60.;
+				int			retent_id			= 9999;
+				double		retent_val			= 9999.;
 
 				double		low_disp_rng 		= 0.;
 				double		high_disp_rng		= 0.;
 				double		low_warn_lmt 		= 0.;
-				double		high_warn_lmt 		= 0.;
+				double		high_warn_lmt 		= 10.;
 				double		low_alarm_lmt 		= 0.;
-				double		high_alarm_lmt 		= 0.;
-				int			prec 				= 0.;
-				std::string unit	= "";		
-				if(checkIfPVExists(pvName))
+				double		high_alarm_lmt 		= 100.;
+				int			prec 				= 0;
+				std::string unit				= "";
+
+				if(!checkIfPVExists(pvName))
 				{
-					__SS__ << "While configuring and check for new PVs, PV name '" << pvName << "' was found in PV list!" << __E__;
-					__SS_THROW__;
+					mapOfPVInfo_[pvName] = new PVInfo(DBR_STRING);
+					__COUT__ << "configure(): new PV '" << pvName << "' found! Now subscribing" << __E__;
+					subscribe(pvName);
 				}
-				mapOfPVInfo_[pvName] = new PVInfo(DBR_STRING);
-				__COUT__ << "new PV '" << pvName << "' found! Now subscribing" << __E__;
-				subscribe(pvName);
-				
+
 				if(dbconnStatus_ == 1)
 				{
-					PGresult*   res;
-					char        buffer[1024];
-					__COUT__ << "Writing new PV in the Archiver Database" << __E__;
-					int num = snprintf(buffer, sizeof(buffer),
-					"INSERT INTO channel(					\
-										  name				\
-										, descr				\
-										, grp_id			\
-										, smpl_mode_id		\
-										, smpl_val			\
-										, smpl_per			\
-										, retent_id			\
-										, retent_val)		\
-					VALUES (%s, %s, %d, %d, %f, %f, %d, %f);", pvName.c_str() ,descr.c_str(), grp_id, smpl_mode_id, smpl_val, smpl_per, retent_id, retent_val);
-					res     = PQexec(dbconn, buffer);
-
-					if(PQresultStatus(res) != PGRES_TUPLES_OK)
+					PGresult* res;
+					char      buffer[1024];
+					try
 					{
-						PQclear(res);
-						__SS__ << "configure(): CHANNEL INSERT INTO DATABASE FAILED!!! " << __E__;
+						//ACTION FOR DB ARCHIVER CHANNEL TABLE
+						int num = snprintf(buffer, sizeof(buffer),
+						"SELECT name FROM channel WHERE name = '%s';", pvName.c_str());
+
+						res     = PQexec(dbconn, buffer);
+						__COUT__ << "configure(): SELECT channel table PQntuples(res): " << PQntuples(res) << __E__;
+
+						if(PQresultStatus(res) != PGRES_TUPLES_OK)
+						{
+							__SS__ << "configure(): SELECT FOR DATABASE CHANNEL TABLE FAILED!!! PV Name: "
+									<< pvName << " PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+							PQclear(res);
+							__SS_THROW__;
+						}
+
+						if(PQntuples(res) > 0)
+						{
+							//UPDATE DB ARCHIVER CHANNEL TABLE
+							PQclear(res);
+							__COUT__ << "configure(): Updating PV: " << pvName << " in the Archiver Database channel table" << __E__;
+							num = snprintf(buffer, sizeof(buffer),
+											"UPDATE channel SET					\
+															  grp_id=%d			\
+															, smpl_mode_id=%d	\
+															, smpl_val=%f		\
+															, smpl_per=%f		\
+															, retent_id=%d		\
+															, retent_val=%f		\
+											WHERE name = '%s';"
+										, grp_id, smpl_mode_id, smpl_val, smpl_per, retent_id, retent_val, pvName.c_str());
+							//__COUT__ << "configure(): channel update select: " << buffer << __E__;
+
+							res     = PQexec(dbconn, buffer);
+
+							if(PQresultStatus(res) != PGRES_COMMAND_OK)
+							{
+								__SS__ << "configure(): CHANNEL UPDATE INTO DATABASE CHANNEL TABLE FAILED!!! PV Name: "
+										<< pvName << " PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+								PQclear(res);
+								__SS_THROW__;
+							}
+							PQclear(res);
+						}
+						else
+						{
+							//INSERT INTO DB ARCHIVER CHANNEL TABLE
+							PQclear(res);
+							__COUT__ << "configure(): Writing new PV in the Archiver Database channel table" << __E__;
+							num = snprintf(buffer, sizeof(buffer),
+							"INSERT INTO channel(					\
+												  name				\
+												, descr				\
+												, grp_id			\
+												, smpl_mode_id		\
+												, smpl_val			\
+												, smpl_per			\
+												, retent_id			\
+												, retent_val)		\
+							VALUES ('%s', '%s', %d, %d, %f, %f, %d, %f);", pvName.c_str() ,descr.c_str(), grp_id, smpl_mode_id, smpl_val, smpl_per, retent_id, retent_val);
+
+							res     = PQexec(dbconn, buffer);
+							if(PQresultStatus(res) != PGRES_COMMAND_OK)
+							{
+								__SS__ << "configure(): CHANNEL INSERT INTO DATABASE CHANNEL TABLE FAILED!!! PV Name: "
+										<< pvName 	<< " PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+								PQclear(res);
+								__SS_THROW__;
+							}
+							PQclear(res);
+						}
+
+						//ACTION FOR DB ARCHIVER NUM_METADATA TABLE
+						num = snprintf(buffer, sizeof(buffer),
+						"SELECT channel.channel_id FROM channel, num_metadata WHERE channel.channel_id = num_metadata.channel_id AND channel.name = '%s';", pvName.c_str());
+
+						res     = PQexec(dbconn, buffer);
+						__COUT__ << "configure(): SELECT num_metadata table PQntuples(res): " << PQntuples(res) << __E__;
+
+						if(PQresultStatus(res) != PGRES_TUPLES_OK)
+						{
+							__SS__ << "configure(): SELECT FOR DATABASE NUM_METADATA TABLE FAILED!!! PV Name: "
+									<< pvName << " PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+							PQclear(res);
+							__SS_THROW__;
+						}
+
+						if(PQntuples(res) > 0)
+						{
+							//UPDATE DB ARCHIVER NUM_METADATA TABLE
+							std::string channel_id = PQgetvalue(res, 0, 0);
+							__COUT__ << "configure(): Updating PV: " << pvName
+										<< " channel_id: " << channel_id << " in the Archiver Database num_metadata table" << __E__;
+							PQclear(res);
+							num = snprintf(buffer, sizeof(buffer),
+							"UPDATE num_metadata SET					\
+												  low_disp_rng=%f		\
+												, high_disp_rng=%f		\
+												, low_warn_lmt=%f		\
+												, high_warn_lmt=%f		\
+												, low_alarm_lmt=%f		\
+												, high_alarm_lmt=%f		\
+												, prec=%d				\
+												, unit='%s'				\
+							WHERE channel_id='%s';",low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit.c_str(), channel_id.c_str());
+
+							res     = PQexec(dbconn, buffer);
+							if(PQresultStatus(res) != PGRES_COMMAND_OK)
+							{
+								__SS__ << "configure(): CHANNEL UPDATE INTO DATABASE NUM_METADATA TABLE FAILED!!! PV Name(channel_id): "
+										<< pvName << " " << channel_id
+										<< " PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+								PQclear(res);
+								__SS_THROW__;
+							}					
+							PQclear(res);
+						}
+						else
+						{
+							//INSERT INTO DB ARCHIVER NUM_METADATA TABLE
+							num = snprintf(buffer, sizeof(buffer), "SELECT channel_id FROM channel WHERE name = '%s';", pvName.c_str());
+
+							res = PQexec(dbconn, buffer);
+							__COUT__ << "configure(): SELECT channel table to check channel_id for num_metadata table. PQntuples(res): " << PQntuples(res) << __E__;
+
+							if(PQresultStatus(res) != PGRES_TUPLES_OK)
+							{
+								__SS__ << "configure(): SELECT TO DATABASE CHANNEL TABLE FOR NUM_MATADATA TABLE FAILED!!! PV Name: " << pvName
+								       << " PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+								PQclear(res);
+								__SS_THROW__;
+							}
+
+							if(PQntuples(res) > 0)
+							{
+								std::string channel_id = PQgetvalue(res, 0, 0);
+								__COUT__ << "configure(): Writing new PV in the Archiver Database num_metadata table" << __E__;
+								PQclear(res);
+
+								num = snprintf(buffer, sizeof(buffer),
+								"INSERT INTO num_metadata(			\
+												  channel_id		\
+												, low_disp_rng		\
+												, high_disp_rng		\
+												, low_warn_lmt		\
+												, high_warn_lmt		\
+												, low_alarm_lmt		\
+												, high_alarm_lmt	\
+												, prec				\
+												, unit)				\
+												VALUES ('%s',%f,%f,%f,%f,%f,%f,%d,'%s');",
+												  channel_id.c_str(), low_disp_rng, high_disp_rng, low_warn_lmt
+												, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit.c_str());
+
+								res = PQexec(dbconn, buffer);
+								if(PQresultStatus(res) != PGRES_COMMAND_OK)
+								{
+									__SS__ << "configure(): CHANNEL INSERT INTO DATABASE NUM_METADATA TABLE FAILED!!! PV Name: " << pvName
+									       << " PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+									PQclear(res);
+									__SS_THROW__;
+								}
+								PQclear(res);
+							}
+							else
+							{
+								__SS__ << "configure(): CHANNEL INSERT INTO DATABASE NUM_METADATA TABLE FAILED!!! PV Name: " << pvName
+								       << " NOT RECOGNIZED IN CHANNEL TABLE" << __E__;
+								PQclear(res);
+								__SS_THROW__;
+							}
+						}
+					}
+					catch(...)
+					{
+						__SS__ << "configure(): CHANNEL INSERT OR UPDATE INTO DATABASE FAILED!!! "
+								<< " PQ ERROR: " << PQresultErrorMessage(res) <<__E__;
 						__SS_THROW__;
 					}
-
-					PQclear(res);
-		
-					num = snprintf(buffer, sizeof(buffer),
-					"INSERT INTO num_metadata(				\
-										  low_disp_rng		\
-										, high_disp_rng		\
-										, low_warn_lmt		\
-										, high_warn_lmt		\
-										, low_alarm_lmt		\
-										, high_alarm_lmt	\
-										,prec				\
-										, unit)				\
-					VALUES (%f,%f,%f,%f,%f,%f,%d,%s);",low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit.c_str());
-					res     = PQexec(dbconn, buffer);
-
-					if(PQresultStatus(res) != PGRES_TUPLES_OK)
-					{
-						PQclear(res);
-						__SS__ << "configure(): CHANNEL INSERT INTO DATABASE FAILED!!! " << __E__;
-						__SS_THROW__;
-					}					
-					PQclear(res);
 				}
 				else
 				{
 					__SS__ << "configure(): DATABASE CONNECTION FAILED!!! " << __E__;
 					__SS_THROW__;
-		
 				}
 			} //end channel name loop
 		}
