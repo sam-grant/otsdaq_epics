@@ -1397,12 +1397,15 @@ void EpicsInterface::configure()
 		{
 			__COUT__ << "configure(): Handling channel list change!" << __E__;
 
-			std::vector<std::string> channelNames;
-			slowControlsTable->getSlowControlsChannelList(channelNames);
+			//std::vector<std::string> channelNames;
+			//slowControlsTable->getSlowControlsChannelList(channelNames);
+			std::vector < std::pair<std::string, std::vector<std::string>> > channels;
+			slowControlsTable->getSlowControlsChannelList(channels);
 
-			for(const auto& pvName : channelNames)
+			for(const auto& channel : channels)
 			{
-				std::string	descr				= "";
+				std::string pvName              = channel.first;
+				std::string	descr				= channel.second.at(0);
 				int			grp_id				= 4;
 				int 		smpl_mode_id		= 1;
 				double		smpl_val			= 0.;
@@ -1412,12 +1415,12 @@ void EpicsInterface::configure()
 
 				double		low_disp_rng 		= 0.;
 				double		high_disp_rng		= 0.;
-				double		low_warn_lmt 		= 0.;
-				double		high_warn_lmt 		= 10.;
-				double		low_alarm_lmt 		= 0.;
-				double		high_alarm_lmt 		= 100.;
-				int			prec 				= 0;
-				std::string unit				= "";
+				double      low_warn_lmt        = atof(channel.second.at(1).c_str());
+				double      high_warn_lmt       = atof(channel.second.at(2).c_str());
+				double      low_alarm_lmt       = atof(channel.second.at(3).c_str());
+				double      high_alarm_lmt      = atof(channel.second.at(4).c_str());
+				int         prec                = atoi(channel.second.at(5).c_str());
+				std::string unit				= channel.second.at(6);
 
 				if(!checkIfPVExists(pvName))
 				{
