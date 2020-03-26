@@ -105,9 +105,9 @@ std::string EpicsInterface::getList(const std::string& format)
 		pvList = "[";
 		for(auto it = mapOfPVInfo_.begin(); it != mapOfPVInfo_.end(); it++)
 		{
-			if(dbconnStatus_ == 1)
+			if(dcsArchiveDbConnStatus_ == 1)
 			{
-				res     = PQexec(dbconn, buffer);
+				res     = PQexec(dcsArchiveDbConn, buffer);
 				int num = snprintf(buffer, sizeof(buffer), "SELECT smpl_mode_id, smpl_per FROM channel WHERE name = '%s'", (it->first).c_str());
 
 				if(PQresultStatus(res) == PGRES_TUPLES_OK)
@@ -128,7 +128,7 @@ std::string EpicsInterface::getList(const std::string& format)
 				}
 				else
 				{
-					__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
+					__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dcsArchiveDbConn) << __E__;
 					PQclear(res);
 				}
 			}
@@ -517,7 +517,7 @@ void EpicsInterface::loadListOfPVs()
 	}
 */
 	// HERE GET PVS LIST FROM DB
-	if(dbconnStatus_ == 1)
+	if(dcsArchiveDbConnStatus_ == 1)
 	{
 		PGresult*   res;
 		char        buffer[1024];
@@ -526,7 +526,7 @@ void EpicsInterface::loadListOfPVs()
 
 		__GEN_COUT__ << "Reading database PVS List" << __E__;
 		int num = snprintf(buffer, sizeof(buffer), "SELECT COUNT(%s) FROM channel", std::string("channel_id").c_str());
-		res     = PQexec(dbconn, buffer);
+		res     = PQexec(dcsArchiveDbConn, buffer);
 
 		if(PQresultStatus(res) == PGRES_TUPLES_OK)
 		{
@@ -536,21 +536,21 @@ void EpicsInterface::loadListOfPVs()
 			for (int i = 1; i <= rows; i++)
 			{
 				int num = snprintf(buffer, sizeof(buffer), "SELECT name FROM channel WHERE channel_id = '%d'", i);
-				res     = PQexec(dbconn, buffer);
+				res     = PQexec(dcsArchiveDbConn, buffer);
 				if(PQresultStatus(res) == PGRES_TUPLES_OK)
 				{
 					pv_name = PQgetvalue(res, 0, 0);
 					mapOfPVInfo_[pv_name] = new PVInfo(DBR_STRING);
 				}
 				else
-					__GEN_COUT__ << "SELECT failed: mapOfPVInfo_ not filled for channel_id: "<< i << PQerrorMessage(dbconn) << __E__;
+					__GEN_COUT__ << "SELECT failed: mapOfPVInfo_ not filled for channel_id: "<< i << PQerrorMessage(dcsArchiveDbConn) << __E__;
 			}
 			__GEN_COUT__ << "Finished reading database PVs List!" << __E__;
 			PQclear(res);
 		}
 		else
 		{
-			__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
+			__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dcsArchiveDbConn) << __E__;
 			PQclear(res);
 		}
 	}
@@ -968,6 +968,7 @@ void EpicsInterface::popQueue(const std::string& pvName)
 	return;
 }
 
+//========================================================================================================================
 std::array<std::string, 4> EpicsInterface::getCurrentValue(const std::string& pvName)
 {
 	__GEN_COUT__ << "void EpicsInterface::getCurrentValue() reached" << __E__;
@@ -1042,9 +1043,10 @@ std::array<std::string, 4> EpicsInterface::getCurrentValue(const std::string& pv
 	return currentValues;
 }
 
+//========================================================================================================================
 std::array<std::string, 9> EpicsInterface::getSettings(const std::string& pvName)
 {
-	__GEN_COUT__ << "void EpicsInterface::getPVSettings() reached" << __E__;
+	__GEN_COUT__ << "EpicsInterface::getPVSettings() reached" << __E__;
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
@@ -1070,39 +1072,6 @@ std::array<std::string, 9> EpicsInterface::getSettings(const std::string& pvName
 				upperControlLimit = std::to_string(set->upper_ctrl_limit);
 				lowerControlLimit = std::to_string(set->lower_ctrl_limit);
 
-				//					sprintf(&upperDisplayLimit[0],"%u",set->upper_disp_limit);
-				//					sprintf(&lowerDisplayLimit[0],"%u",set->lower_disp_limit
-				//);
-				//					sprintf(&lowerDisplayLimit[0],"%u",set->lower_disp_limit
-				//); 					sprintf(
-				//&upperAlarmLimit[0],"%u",set->upper_alarm_limit  );
-				//					sprintf(&upperWarningLimit[0],"%u",set->upper_warning_limit);
-				//					sprintf(&lowerWarningLimit[0],"%u",set->lower_warning_limit);
-				//					sprintf(
-				//&lowerAlarmLimit[0],"%u",set->lower_alarm_limit  );
-				//					sprintf(&upperControlLimit[0],"%u",set->upper_ctrl_limit);
-				//					sprintf(&lowerControlLimit[0],"%u",set->lower_ctrl_limit);
-
-				//					std::string units             =
-				// set->units;
-				//                                  	std::string upperDisplayLimit
-				//(reinterpret_cast<char*>(set->upper_disp_limit   ));
-				//					std::string lowerDisplayLimit
-				//(reinterpret_cast<char*>(set->lower_disp_limit   ));
-				//					std::string upperAlarmLimit
-				//(reinterpret_cast<char*>(set->upper_alarm_limit  ));
-				//					std::string upperWarningLimit
-				//(reinterpret_cast<char*>(set->upper_warning_limit));
-				//					std::string lowerWarningLimit
-				//(reinterpret_cast<char*>(set->lower_warning_limit));
-				//					std::string lowerAlarmLimit
-				//(reinterpret_cast<char*>(set->lower_alarm_limit  ));
-				//					std::string upperControlLimit
-				//(reinterpret_cast<char*>(set->upper_ctrl_limit   ));
-				//					std::string lowerControlLimit
-				//(reinterpret_cast<char*>(set->lower_ctrl_limit   ));
-				// if(DEBUG)
-				//{
 				__GEN_COUT__ << "Units              :    " << units << __E__;
 				__GEN_COUT__ << "Upper Display Limit:    " << upperDisplayLimit << __E__;
 				__GEN_COUT__ << "Lower Display Limit:    " << lowerDisplayLimit << __E__;
@@ -1112,12 +1081,7 @@ std::array<std::string, 9> EpicsInterface::getSettings(const std::string& pvName
 				__GEN_COUT__ << "Lower Alarm Limit  :    " << lowerAlarmLimit << __E__;
 				__GEN_COUT__ << "Upper Control Limit:    " << upperControlLimit << __E__;
 				__GEN_COUT__ << "Lower Control Limit:    " << lowerControlLimit << __E__;
-				//}
 			}
-
-		// std::array<std::string, 9> s = {
-		//    "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd", "DC'd",
-		//    "DC'd"};
 
 		std::array<std::string, 9> s = {units,
 		                                upperDisplayLimit,
@@ -1141,125 +1105,365 @@ std::array<std::string, 9> EpicsInterface::getSettings(const std::string& pvName
 	return s;
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  dbSystemLogin dbSystemLogout getHistory Antonio 09.24.2019               */
-/*                                                                           */
-/*****************************************************************************/
+//========================================================================================================================
 void EpicsInterface::dbSystemLogin()
 {
-	dbconnStatus_ = 0;
+	dcsArchiveDbConnStatus_ = 0;
+	dcsAlarmDbConnStatus_   = 0;
+	dcsLogDbConnStatus_     = 0;
 
-	dbconn = PQconnectdb(
+	// dcs_archive Db Connection
+	dcsArchiveDbConn = PQconnectdb(
 	    "dbname=dcs_archive host=mu2edaq12 port=5432 "
 	    "user=dcs_writer password=ses3e-17!dcs_writer");
 	    //"user=dcs_reader password=ses3e-17!dcs_reader");
 
-	if(PQstatus(dbconn) == CONNECTION_BAD)
+	if(PQstatus(dcsArchiveDbConn) == CONNECTION_BAD)
 	{
-		__GEN_COUT__ << "Unable to connect to the database!\n" << __E__;
-		PQfinish(dbconn);
+		__GEN_COUT__ << "Unable to connect to the dcs_archive database!\n" << __E__;
+		PQfinish(dcsArchiveDbConn);
 	}
 	else
 	{
-		__GEN_COUT__ << "Connected to the database!\n" << __E__;
-		dbconnStatus_ = 1;
+		__GEN_COUT__ << "Connected to the dcs_archive database!\n" << __E__;
+		dcsArchiveDbConnStatus_ = 1;
+	}
+
+	// dcs_alarm Db Connection
+	dcsAlarmDbConn = PQconnectdb(
+	    "dbname=dcs_alarm host=mu2edaq12 port=5432 "
+		"user=dcs_reader password=ses3e-17!dcs_reader");
+	//	"user=dcs_writer password=ses3e-17!dcs_writer");
+
+	if(PQstatus(dcsAlarmDbConn) == CONNECTION_BAD)
+	{
+		__GEN_COUT__ << "Unable to connect to the dcs_alarm database!\n" << __E__;
+		PQfinish(dcsAlarmDbConn);
+	}
+	else
+	{
+		__GEN_COUT__ << "Connected to the dcs_alarm database!\n" << __E__;
+		dcsAlarmDbConnStatus_ = 1;
+	}
+
+	// dcs_log Db Connection
+	dcsLogDbConn = PQconnectdb(
+	    "dbname=dcs_log host=mu2edaq12 port=5432 "
+	    "user=dcs_reader password=ses3e-17!dcs_reader");
+	//	"user=dcs_writer password=ses3e-17!dcs_writer");
+
+	if(PQstatus(dcsLogDbConn) == CONNECTION_BAD)
+	{
+		__GEN_COUT__ << "Unable to connect to the dcs_log database!\n" << __E__;
+		PQfinish(dcsLogDbConn);
+	}
+	else
+	{
+		__GEN_COUT__ << "Connected to the dcs_log database!\n" << __E__;
+		dcsLogDbConnStatus_ = 1;
 	}
 }
 
+//========================================================================================================================
 void EpicsInterface::dbSystemLogout()
 {
-	if(PQstatus(dbconn) == CONNECTION_OK)
+	if(PQstatus(dcsArchiveDbConn) == CONNECTION_OK)
 	{
-		PQfinish(dbconn);
-		__GEN_COUT__ << "DB CONNECTION CLOSED\n" << __E__;
+		PQfinish(dcsArchiveDbConn);
+		__GEN_COUT__ << "DCS_ARCHIVE DB CONNECTION CLOSED\n" << __E__;
+	}
+	if(PQstatus(dcsAlarmDbConn) == CONNECTION_OK)
+	{
+		PQfinish(dcsAlarmDbConn);
+		__GEN_COUT__ << "DCS_ALARM DB CONNECTION CLOSED\n" << __E__;
+	}
+	if(PQstatus(dcsLogDbConn) == CONNECTION_OK)
+	{
+		PQfinish(dcsLogDbConn);
+		__GEN_COUT__ << "DCS_LOG DB CONNECTION CLOSED\n" << __E__;
 	}
 }
 
+//========================================================================================================================
 std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(const std::string& pvName)
 {
-	__GEN_COUT__ << "void EpicsInterface::getChannelHistory() reached" << __E__;
+	__GEN_COUT__ << "getChannelHistory() reached" << __E__;
+	std::vector<std::vector<std::string>> history;
 
 	if(mapOfPVInfo_.find(pvName) != mapOfPVInfo_.end())
 	{
-		PGresult* res;
-		char      buffer[1024];
-
-		// VIEW LAST 10 UPDATES
-		int num = snprintf(buffer,
-		                   sizeof(buffer),
-		                   "SELECT FLOOR(EXTRACT(EPOCH FROM smpl_time)), float_val, status.name, "
-		                   "severity.name, smpl_per FROM channel, sample, status, severity WHERE "
-		                   "channel.channel_id = sample.channel_id AND sample.severity_id = "
-		                   "severity.severity_id  AND sample.status_id = status.status_id AND "
-		                   "channel.name = \'%s\' ORDER BY smpl_time desc LIMIT 10",
-		                   pvName.c_str());
-
-		if(dbconnStatus_ != 1)
+		if(dcsArchiveDbConnStatus_ == 1)
 		{
-			__GEN_COUT__ << "void EpicsInterface::getPVHistory() reached" << __E__;
-			std::vector<std::vector<std::string>> history;
-			history.resize(1);
-			history[0] = {"PV Not Found", "NF", "N/a", "N/a"};
-			return history;
-		}
-		else
-		{
-			res = PQexec(dbconn, buffer);
-		}
-
-		if(PQresultStatus(res) == PGRES_TUPLES_OK)
-		{
-			std::string                           s;
-			std::vector<std::vector<std::string>> history;
-
-			/* first, print out the attribute names */
-			int nFields = PQnfields(res);
-			if(PQntuples(res) <= 0)
+			PGresult* res;
+			try
 			{
-				history.resize(1);
-				history[0] = {"PV Not Found", "NF", "N/a", "N/a"};
-				return history;
-			}
+				char     		buffer[1024];
+				std::string		row;
 
-			history.resize(PQntuples(res));
+				// VIEW LAST 10 UPDATES
+				int num = snprintf(buffer,
+				                   sizeof(buffer),
+				                   "SELECT FLOOR(EXTRACT(EPOCH FROM smpl_time)), float_val, status.name, "
+				                   "severity.name, smpl_per FROM channel, sample, status, severity WHERE "
+				                   "channel.channel_id = sample.channel_id AND sample.severity_id = "
+				                   "severity.severity_id  AND sample.status_id = status.status_id AND "
+				                   "channel.name = \'%s\' ORDER BY smpl_time desc LIMIT 10",
+				                   pvName.c_str());
 
-			/* next, print out the rows */
-			for(int i = 0; i < PQntuples(res); i++)
-			{
-				history[i].resize(nFields);
-				for(int j = 0; j < nFields; j++)
+				res = PQexec(dcsArchiveDbConn, buffer);
+
+				if(PQresultStatus(res) != PGRES_TUPLES_OK)
 				{
-					history[i][j] = PQgetvalue(res, i, j);
-					s.append(PQgetvalue(res, i, j));
-					s.append(" ");
+					__SS__ << "getChannelHistory(): SELECT FROM ARCHIVER DATABASE FAILED!!! PQ ERROR: "
+							<< PQresultErrorMessage(res) << __E__;
+					PQclear(res);
+					__SS_THROW__;
 				}
-				s.append("\n");
+
+				if(PQntuples(res) > 0)
+				{
+					/* first, print out the attribute names */
+					int nFields = PQnfields(res);
+					history.resize(PQntuples(res));
+
+					/* next, print out the rows */
+					for(int i = 0; i < PQntuples(res); i++)
+					{
+						history[i].resize(nFields);
+						for(int j = 0; j < nFields; j++)
+						{
+							history[i][j] = PQgetvalue(res, i, j);
+							row.append(PQgetvalue(res, i, j));
+							row.append(" ");
+						}
+						row.append("\n");
+					}
+					__GEN_COUT__ << row << __E__;
+					PQclear(res);
+				}
 			}
-			__GEN_COUT__ << s << __E__;
-			PQclear(res);
-			return history;
+			catch(...)
+			{
+				__SS__ << "getChannelHistory(): FAILING GETTING DATA FROM ARCHIVER DATABASE!!! PQ ERROR: "
+						<< PQresultErrorMessage(res) << __E__;
+				__SS_THROW__;
+			}
 		}
 		else
 		{
-			__GEN_COUT__ << "SELECT failed: " << PQerrorMessage(dbconn) << __E__;
-			PQclear(res);
+			__SS__ << "getChannelHistory(): ARCHIVER DATABASE CONNECTION FAILED!!! " << __E__;
+			__SS_THROW__;
 		}
-
-		PQclear(res);
 	}
 	else
 	{
-		__GEN_COUT__ << pvName << " was not found!" << __E__;
+		history.resize(1);
+		history[0] = {"PV Not Found", "NF", "N/a", "N/a"};
+		__GEN_COUT__ << "getChannelHistory() pvName " << pvName << " was not found!" << __E__;
 		__GEN_COUT__ << "Trying to resubscribe to " << pvName << __E__;
 		subscribe(pvName);
 	}
 
-	std::vector<std::vector<std::string>> history;
-	history.resize(1);
-	history[0] = {"PV Not Found", "NF", "N/a", "N/a"};
 	return history;
 }  // end getChannelHistory()
+
+//========================================================================================================================
+std::vector<std::vector<std::string>> EpicsInterface::getLastAlarms(const std::string& pvName)
+{
+	__GEN_COUT__ << "EpicsInterface::getLastAlarms() reached" << __E__;
+	std::vector<std::vector<std::string>> alarms;
+
+	if(dcsAlarmDbConnStatus_ == 1)
+	{
+		PGresult* res;
+		try
+		{
+			char  		buffer[1024];
+			std::string row;
+
+			// ACTION FOR ALARM DB CHANNEL TABLE
+			int num = snprintf(buffer, sizeof(buffer),
+						"SELECT   pv.component_id							\
+								, alarm_tree.name							\
+								, pv.descr									\
+								, pv.pv_value								\
+								, status.name as status						\
+								, severity.name as severity					\
+								, pv.alarm_time								\
+								, pv.enabled_ind							\
+								, pv.annunciate_ind							\
+								, pv.latch_ind								\
+								, pv.delay									\
+								, pv.filter									\
+								, pv.delay_count							\
+								, pv.act_global_alarm_ind					\
+						FROM alarm_tree, pv, status, severity				\
+						WHERE	pv.component_id = alarm_tree.component_id	\
+						AND	pv.status_id = status.status_id					\
+						AND	pv.severity_id = severity.severity_id			\
+						AND	alarm_tree.name LIKE \'%%%s%%\'					\
+ 						ORDER BY pv.severity_id DESC;", pvName.c_str());
+
+			res = PQexec(dcsAlarmDbConn, buffer);
+			__COUT__ << "getLastAlarms(): SELECT pv table PQntuples(res): " << PQntuples(res) << __E__;
+
+			if(PQresultStatus(res) != PGRES_TUPLES_OK)
+			{
+				__SS__ << "getLastAlarms(): SELECT FROM ALARM DATABASE FAILED!!! PQ ERROR: "
+						<< PQresultErrorMessage(res) << __E__;
+				PQclear(res);
+				__SS_THROW__;
+			}
+
+			if(PQntuples(res) > 0)
+			{
+				// UPDATE ALARMS LIST
+				int nFields = PQnfields(res);
+				alarms.resize(PQntuples(res));
+
+				/* next, print out the rows */
+				for(int i = 0; i < PQntuples(res); i++)
+				{
+					alarms[i].resize(nFields);
+					for(int j = 0; j < nFields; j++)
+					{
+						alarms[i][j] = PQgetvalue(res, i, j);
+						row.append(PQgetvalue(res, i, j));
+						row.append(" ");
+					}
+					row.append("\n");
+					//__GEN_COUT__ << "getLastAlarms(): " << row << __E__;
+				}
+			}
+			else
+			{
+				alarms.resize(1);
+				alarms[0] = {
+				    "0",
+				    "Alarms List Not Found",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				};
+			}
+
+			PQclear(res);
+		}
+		catch (...)
+		{
+			__SS__ << "getLastAlarms(): FAILING GETTING DATA FROM ARCHIVER DATABASE!!! PQ ERROR: "
+					<< PQresultErrorMessage(res) << __E__;
+			__SS_THROW__;
+		}
+	}
+	else
+	{
+		__SS__ << "getLastAlarms(): ALARM DATABASE CONNECTION FAILED!!! " << __E__;
+		__SS_THROW__;
+	}
+	return alarms;
+}  // end getLastAlarms()
+
+//========================================================================================================================
+std::vector<std::vector<std::string>> EpicsInterface::getAlarmsLog(const std::string& pvName)
+{
+	__GEN_COUT__ << "EpicsInterface::getAlarmsLog() reached" << __E__;
+	std::vector<std::vector<std::string>> alarmsHistory;
+
+	if(dcsLogDbConnStatus_ == 1)
+	{
+		PGresult*   res;
+		try
+		{
+			char        buffer[1024];
+			std::string row;
+
+			// ACTION FOR ALARM DB CHANNEL TABLE
+			int num = snprintf(buffer, sizeof(buffer),
+						"SELECT DISTINCT												\
+							  message.id												\
+							, message.name												\
+							, message_content.value										\
+							, msg_property_type.name as \"status\"						\
+							, message.severity											\
+							, message.datum	as \"time\"									\
+						FROM  	message, message_content, msg_property_type				\
+						WHERE 	message.id = message_content.message_id					\
+						AND	message_content.msg_property_type_id = msg_property_type.id \
+						AND	message.type = 'alarm'										\
+						AND	message.severity != 'OK'									\
+						AND	message.datum >= current_date -20							\
+						AND	message.name LIKE '%%%s%%'									\
+						ORDER BY message.datum DESC;", pvName.c_str());
+
+			res = PQexec(dcsLogDbConn, buffer);
+			__COUT__ << "getAlarmsLog(): SELECT message table PQntuples(res): " << PQntuples(res) << __E__;
+
+			if(PQresultStatus(res) != PGRES_TUPLES_OK)
+			{
+				__SS__ << "getAlarmsLog(): SELECT FROM ALARM LOG DATABASE FAILED!!! PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+				PQclear(res);
+				__SS_THROW__;
+			}
+
+			if(PQntuples(res) > 0)
+			{
+				// UPDATE ALARMS LIST
+				int nFields = PQnfields(res);
+				alarmsHistory.resize(PQntuples(res));
+
+				/* next, print out the rows */
+				for(int i = 0; i < PQntuples(res); i++)
+				{
+					alarmsHistory[i].resize(nFields);
+					for(int j = 0; j < nFields; j++)
+					{
+						alarmsHistory[i][j] = PQgetvalue(res, i, j);
+						row.append(PQgetvalue(res, i, j));
+						row.append(" ");
+					}
+					row.append("\n");
+					//__GEN_COUT__ << "getAlarmsLog(): " << row << __E__;
+				}
+			}
+			else
+			{
+				alarmsHistory.resize(1);
+				alarmsHistory[0] = {
+				    "0",
+				    "Alarms List Not Found",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				    "N/a",
+				};
+			}
+
+			PQclear(res);
+		}
+		catch(...)
+		{
+			__SS__ << "getAlarmsLog(): FAILING GETTING DATA FROM ARCHIVER DATABASE!!! PQ ERROR: "
+					<< PQresultErrorMessage(res) << __E__;
+			__SS_THROW__;
+		}
+	}
+	else
+	{
+		__SS__ << "getAlarmsLog(): ALARM LOG DATABASE CONNECTION FAILED!!! " << __E__;
+		__SS_THROW__;
+	}
+	return alarmsHistory;
+}  // end getAlarmsLog()
 
 //========================================================================================================================
 // Check Alarms from Epics
@@ -1298,7 +1502,7 @@ std::vector<std::string> EpicsInterface::checkAlarm(const std::string& pvName, b
 }  // end checkAlarm()
 
 //========================================================================================================================
-// Check Alarm from Epics
+// Check Alarms from Epics
 std::vector<std::vector<std::string>> EpicsInterface::checkAlarms()
 {
 	std::vector<std::vector<std::string>> channelAlarms;
@@ -1323,7 +1527,7 @@ std::vector<std::vector<std::string>> EpicsInterface::checkAlarms()
 }  // end checkAlarms()
 
 //========================================================================================================================
-// Check Alarms from Epics
+// handle Alarms For FSM from Epics
 void EpicsInterface::handleAlarmsForFSM(const std::string& fsmTransitionName, ConfigurationTree linkToAlarmsToMonitor)
 {
 	if(!linkToAlarmsToMonitor.isDisconnected())
@@ -1364,7 +1568,7 @@ void EpicsInterface::handleAlarmsForFSM(const std::string& fsmTransitionName, Co
 }  // end handleAlarmsForFSM()
 
 //========================================================================================================================
-// Check Alarms from Epics
+// Configure override for Epics
 void EpicsInterface::configure()
 {
 	handleAlarmsForFSM("configure", getSelfNode().getNode("LinkToConfigureAlarmsToMonitorTable"));
@@ -1397,9 +1601,7 @@ void EpicsInterface::configure()
 		{
 			__COUT__ << "configure(): Handling channel list change!" << __E__;
 
-			//std::vector<std::string> channelNames;
-			//slowControlsTable->getSlowControlsChannelList(channelNames);
-			std::vector < std::pair<std::string, std::vector<std::string>> > channels;
+			std::vector<std::pair<std::string, std::vector<std::string>>> channels;
 			slowControlsTable->getSlowControlsChannelList(channels);
 
 			for(const auto& channel : channels)
@@ -1429,7 +1631,7 @@ void EpicsInterface::configure()
 					subscribe(pvName);
 				}
 
-				if(dbconnStatus_ == 1)
+				if(dcsArchiveDbConnStatus_ == 1)
 				{
 					PGresult* res;
 					char      buffer[1024];
@@ -1439,7 +1641,7 @@ void EpicsInterface::configure()
 						int num = snprintf(buffer, sizeof(buffer),
 						"SELECT name FROM channel WHERE name = '%s';", pvName.c_str());
 
-						res     = PQexec(dbconn, buffer);
+						res     = PQexec(dcsArchiveDbConn, buffer);
 						__COUT__ << "configure(): SELECT channel table PQntuples(res): " << PQntuples(res) << __E__;
 
 						if(PQresultStatus(res) != PGRES_TUPLES_OK)
@@ -1467,7 +1669,7 @@ void EpicsInterface::configure()
 										, grp_id, smpl_mode_id, smpl_val, smpl_per, retent_id, retent_val, pvName.c_str());
 							//__COUT__ << "configure(): channel update select: " << buffer << __E__;
 
-							res     = PQexec(dbconn, buffer);
+							res     = PQexec(dcsArchiveDbConn, buffer);
 
 							if(PQresultStatus(res) != PGRES_COMMAND_OK)
 							{
@@ -1495,7 +1697,7 @@ void EpicsInterface::configure()
 												, retent_val)		\
 							VALUES ('%s', '%s', %d, %d, %f, %f, %d, %f);", pvName.c_str() ,descr.c_str(), grp_id, smpl_mode_id, smpl_val, smpl_per, retent_id, retent_val);
 
-							res     = PQexec(dbconn, buffer);
+							res     = PQexec(dcsArchiveDbConn, buffer);
 							if(PQresultStatus(res) != PGRES_COMMAND_OK)
 							{
 								__SS__ << "configure(): CHANNEL INSERT INTO DATABASE CHANNEL TABLE FAILED!!! PV Name: "
@@ -1510,7 +1712,7 @@ void EpicsInterface::configure()
 						num = snprintf(buffer, sizeof(buffer),
 						"SELECT channel.channel_id FROM channel, num_metadata WHERE channel.channel_id = num_metadata.channel_id AND channel.name = '%s';", pvName.c_str());
 
-						res     = PQexec(dbconn, buffer);
+						res     = PQexec(dcsArchiveDbConn, buffer);
 						__COUT__ << "configure(): SELECT num_metadata table PQntuples(res): " << PQntuples(res) << __E__;
 
 						if(PQresultStatus(res) != PGRES_TUPLES_OK)
@@ -1540,7 +1742,7 @@ void EpicsInterface::configure()
 												, unit='%s'				\
 							WHERE channel_id='%s';",low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit.c_str(), channel_id.c_str());
 
-							res     = PQexec(dbconn, buffer);
+							res     = PQexec(dcsArchiveDbConn, buffer);
 							if(PQresultStatus(res) != PGRES_COMMAND_OK)
 							{
 								__SS__ << "configure(): CHANNEL UPDATE INTO DATABASE NUM_METADATA TABLE FAILED!!! PV Name(channel_id): "
@@ -1556,7 +1758,7 @@ void EpicsInterface::configure()
 							//INSERT INTO DB ARCHIVER NUM_METADATA TABLE
 							num = snprintf(buffer, sizeof(buffer), "SELECT channel_id FROM channel WHERE name = '%s';", pvName.c_str());
 
-							res = PQexec(dbconn, buffer);
+							res = PQexec(dcsArchiveDbConn, buffer);
 							__COUT__ << "configure(): SELECT channel table to check channel_id for num_metadata table. PQntuples(res): " << PQntuples(res) << __E__;
 
 							if(PQresultStatus(res) != PGRES_TUPLES_OK)
@@ -1588,7 +1790,7 @@ void EpicsInterface::configure()
 												  channel_id.c_str(), low_disp_rng, high_disp_rng, low_warn_lmt
 												, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit.c_str());
 
-								res = PQexec(dbconn, buffer);
+								res = PQexec(dcsArchiveDbConn, buffer);
 								if(PQresultStatus(res) != PGRES_COMMAND_OK)
 								{
 									__SS__ << "configure(): CHANNEL INSERT INTO DATABASE NUM_METADATA TABLE FAILED!!! PV Name: " << pvName
@@ -1616,7 +1818,7 @@ void EpicsInterface::configure()
 				}
 				else
 				{
-					__SS__ << "configure(): DATABASE CONNECTION FAILED!!! " << __E__;
+					__SS__ << "configure(): ARCHIVER DATABASE CONNECTION FAILED!!! " << __E__;
 					__SS_THROW__;
 				}
 			} //end channel name loop

@@ -23,6 +23,8 @@
 #include <unistd.h>
 #include <string>
 
+#include <libpq-fe.h>
+
 #include "otsdaq/SlowControlsCore/SlowControlsVInterface.h"
 
 // clang-format off
@@ -90,15 +92,13 @@ struct PVInfo
 
 };
 
-/* Antonio 09/24/2019 */
-#include <libpq-fe.h>
-
-
 //db connection
-PGconn *dbconn;
-int dbconnStatus_;
-
-//end Antonio
+PGconn *dcsArchiveDbConn;
+PGconn *dcsAlarmDbConn;
+PGconn *dcsLogDbConn;
+int dcsArchiveDbConnStatus_;
+int dcsAlarmDbConnStatus_;
+int dcsLogDbConnStatus_;
 
 class EpicsInterface : public SlowControlsVInterface
 {
@@ -124,8 +124,10 @@ class EpicsInterface : public SlowControlsVInterface
 	void                       				subscribeJSON			(const std::string& JSONpvList);
 	void                       				unsubscribe				(const std::string& pvName);
 	std::array<std::string, 4> 				getCurrentValue			(const std::string& pvName);
-	std::vector<std::vector<std::string>> 	getChannelHistory		(const std::string& pvName);
 	std::array<std::string, 9> 				getSettings				(const std::string& pvName);
+	std::vector<std::vector<std::string>> 	getChannelHistory		(const std::string& pvName);
+	std::vector<std::vector<std::string>>	getLastAlarms			(const std::string& pvName);
+	std::vector<std::vector<std::string>>	getAlarmsLog			(const std::string& pvName);
 	std::vector<std::vector<std::string>> 	checkAlarms				(void);
 	std::vector<std::string> 				checkAlarm				(const std::string& pvName, bool ignoreMinor = false);
 
