@@ -93,7 +93,7 @@ std::string EpicsInterface::getList(const std::string& format)
 	char        buffer[1024];
 
 	// pvList = "[\"None\"]";
-	// std::cout << "SUCA: Returning pvList as: " << pvList << std::endl;
+	// std::cout << "SUCA: Returning pvList as: " << pvList << __E__;
 	// return pvList;
 
 	__GEN_COUT__ << "Epics Interface now retrieving pvList!";
@@ -446,7 +446,7 @@ void EpicsInterface::loadListOfPVs()
 	struct dirent*           dirp;
 	if((dp = opendir(pv_csv_dir_path.c_str())) == NULL)
 	{
-		std::cout << "Error  opening: " << pv_csv_dir_path << std::endl;
+		std::cout << "Error  opening: " << pv_csv_dir_path << __E__;
 		return;
 	}
 
@@ -472,9 +472,9 @@ void EpicsInterface::loadListOfPVs()
 	// First two entries will be . & ..
 	for(i = 2; i < files.size(); i++)
 	{
-		// std::cout << pv_csv_dir_path << "/" <<files[i] << std::endl;
+		// std::cout << pv_csv_dir_path << "/" <<files[i] << __E__;
 		std::string pv_list_file = pv_csv_dir_path + "/" + files[i];
-		__GEN_COUT__ << "Reading: " << pv_list_file << std::endl;
+		__GEN_COUT__ << "Reading: " << pv_list_file << __E__;
 
 		// read file
 		// for each line in file
@@ -1474,7 +1474,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getAlarmsLog(const std::st
 // value
 std::vector<std::string> EpicsInterface::checkAlarm(const std::string& pvName, bool ignoreMinor /*=false*/)
 {
-	__COUT__ << "checkAlarm()" << std::endl;
+	__COUT__ << "checkAlarm()" << __E__;
 
 	auto pvIt = mapOfPVInfo_.find(pvName);
 	if(pvIt == mapOfPVInfo_.end())
@@ -1503,28 +1503,49 @@ std::vector<std::string> EpicsInterface::checkAlarm(const std::string& pvName, b
 
 //========================================================================================================================
 // Check Alarms from Epics
-std::vector<std::vector<std::string>> EpicsInterface::checkAlarms()
+std::vector<std::vector<std::string>> EpicsInterface::checkAlarmNotifications()
 {
-	std::vector<std::vector<std::string>> channelAlarms;
-	__COUT__ << "checkAlarms() initializing..." << std::endl;
-	for(auto pvPair : mapOfPVInfo_)
-	{
-		auto valueArray = getCurrentValue(pvPair.first);
+	std::vector<std::vector<std::string>> alarmReturn;
+	std::vector<std::string> alarmRow;
+	auto                     linkToAlarmsToNotify = getSelfNode().getNode("LinkToAlarmAlertNotificationsTable");
 
-		std::string& time     = valueArray[0];
-		std::string& value    = valueArray[1];
-		std::string& status   = valueArray[2];
-		std::string& severity = valueArray[3];
-		if(severity != EPICS_NO_ALARM)
+	if(!linkToAlarmsToNotify.isDisconnected())
+	{
+		auto alarmsToNotifyGroups = linkToAlarmsToNotify.getChildren();
+
+		for(const auto& alarmsToNotifyGroup : alarmsToNotifyGroups)
 		{
-			channelAlarms.push_back(std::vector<std::string>({pvPair.first, time, value, status, severity}));
-			//__COUTV__(StringMacros::vectorToString(channelAlarms_.back()));
+			__COUT__ << "checkAlarmNotifications() alarmsToNotifyGroup: " << alarmsToNotifyGroup.first << __E__;
+
+			auto alarmsToNotify = alarmsToNotifyGroup.second.getNode("LinkToAlarmsToMonitorTable");
+			if(!alarmsToNotify.isDisconnected())
+			{
+				for(const auto& alarmToNotify : alarmsToNotify.getChildren())
+				{
+					__COUT__ << "checkAlarmNotifications() alarmToNotify: " << alarmToNotify.first << __E__;
+
+					alarmRow = checkAlarm(alarmToNotify.second.getNode("AlarmChannelName").getValue<std::string>(),
+					                         alarmToNotify.second.getNode("IgnoreMinorSeverity").getValue<bool>());
+					alarmRow.push_back(alarmToNotify.first);
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("WhoToNotify").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendEmail").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.first);
+					alarmReturn.push_back(alarmRow);
+				}
+			}
 		}
 	}
-	__COUT__ << "checkAlarms().size(): " << channelAlarms.size() << std::endl;
+	// __COUT__
+	// << "checkAlarmNotifications().size(): "
+	// << alarmReturn.size()
+	// << " content:";
+	// for (const auto& row : alarmReturn)
+	// 	for(const auto& s : row)
+	// 		__COUT__ << " " + s;
+	// __COUT__<< __E__;
 
-	return channelAlarms;
-}  // end checkAlarms()
+	return alarmReturn;
+}  // end checkAlarmNotifications()
 
 //========================================================================================================================
 // handle Alarms For FSM from Epics

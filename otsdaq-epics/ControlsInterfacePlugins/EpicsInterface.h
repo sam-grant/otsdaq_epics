@@ -128,7 +128,7 @@ class EpicsInterface : public SlowControlsVInterface
 	std::vector<std::vector<std::string>> 	getChannelHistory		(const std::string& pvName);
 	std::vector<std::vector<std::string>>	getLastAlarms			(const std::string& pvName);
 	std::vector<std::vector<std::string>>	getAlarmsLog			(const std::string& pvName);
-	std::vector<std::vector<std::string>> 	checkAlarms				(void);
+	std::vector<std::vector<std::string>>	checkAlarmNotifications	(void);
 	std::vector<std::string> 				checkAlarm				(const std::string& pvName, bool ignoreMinor = false);
 
 	void 									dbSystemLogin			(void);
