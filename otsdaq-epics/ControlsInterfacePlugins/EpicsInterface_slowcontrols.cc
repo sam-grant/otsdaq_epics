@@ -132,7 +132,8 @@ std::string EpicsInterface::getList(const std::string& format)
 					PQclear(res);
 				}
 			}
-			pvList += "\"" + it->first + ":" + refreshRate + "\", ";
+			//pvList += "\"" + it->first + ":" + refreshRate + "\", ";
+			pvList += "\"" + it->first + "\", ";
 			//__GEN_COUT__ << it->first << __E__;
 		}
 		pvList.resize(pvList.size() - 2);
