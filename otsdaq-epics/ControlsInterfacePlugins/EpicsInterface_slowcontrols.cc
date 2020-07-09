@@ -1115,9 +1115,11 @@ void EpicsInterface::dbSystemLogin()
 
 	// dcs_archive Db Connection
 	dcsArchiveDbConn = PQconnectdb(
-	    "dbname=dcs_archive host=mu2edaq12 port=5432 "
-	    "user=dcs_writer password=ses3e-17!dcs_writer");
+	    //"dbname=dcs_archive host=mu2edaq12 port=5432 "
+	    //"user=dcs_writer password=ses3e-17!dcs_writer");
 	    //"user=dcs_reader password=ses3e-17!dcs_reader");
+	    "dbname=dcs_archive host=mu2edaq15 port=5434 "
+	    "user=dcs_writer password=Write4Dcs");
 
 	if(PQstatus(dcsArchiveDbConn) == CONNECTION_BAD)
 	{
@@ -1132,9 +1134,11 @@ void EpicsInterface::dbSystemLogin()
 
 	// dcs_alarm Db Connection
 	dcsAlarmDbConn = PQconnectdb(
-	    "dbname=dcs_alarm host=mu2edaq12 port=5432 "
-		"user=dcs_reader password=ses3e-17!dcs_reader");
-	//	"user=dcs_writer password=ses3e-17!dcs_writer");
+		//"dbname=dcs_alarm host=mu2edaq12 port=5432 "
+		//"user=dcs_reader password=ses3e-17!dcs_reader");
+		//"user=dcs_writer password=ses3e-17!dcs_writer");
+	    "dbname=dcs_alarm host=mu2edaq15 port=5434 "
+		"user=dcs_reader password=Read4Dcs");
 
 	if(PQstatus(dcsAlarmDbConn) == CONNECTION_BAD)
 	{
@@ -1149,9 +1153,11 @@ void EpicsInterface::dbSystemLogin()
 
 	// dcs_log Db Connection
 	dcsLogDbConn = PQconnectdb(
-	    "dbname=dcs_log host=mu2edaq12 port=5432 "
-	    "user=dcs_reader password=ses3e-17!dcs_reader");
-	//	"user=dcs_writer password=ses3e-17!dcs_writer");
+		//"dbname=dcs_log host=mu2edaq12 port=5432 "
+		//"user=dcs_reader password=ses3e-17!dcs_reader");
+		//"user=dcs_writer password=ses3e-17!dcs_writer");
+		"dbname=dcs_log host=mu2edaq15 port=5434 "
+		"user=dcs_reader password=Read4Dcs");
 
 	if(PQstatus(dcsLogDbConn) == CONNECTION_BAD)
 	{
