@@ -22,38 +22,36 @@ product		 version	optional
 otsdaq           v2_05_03
 otsdaq_utilities v2_05_03
 epics		 v3_15_8
-postgresql	 v9_6_11b
-pqxx		 v6_2_5c
-xerces_c	 v3_2_2
+pqxx		 v6_2_5d
 cetbuildtools    v7_17_01    -        only_for_build
 end_product_list
 
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
-qualifier    	   otsdaq	 	 otsdaq_utilities   epics      postgresql	pqxx			xerces_c 	notes
-e20:s100:prof       e20:s100:prof  	 e20:s100:prof	    e20	       p383b		e20:p383b:prof		e20:prof	-std=c++17		
-e20:s100:debug      e20:s100:debug 	 e20:s100:debug	    e20	       p383b		e20:p383b:debug		e20:debug	-std=c++17
-e19:s100:prof       e19:s100:prof  	 e19:s100:prof	    e19	       p383b		e19:p383b:prof		e19:prof	-std=c++17		
-e19:s100:debug      e19:s100:debug 	 e19:s100:debug	    e19	       p383b		e19:p383b:debug		e19:debug	-std=c++17
-c7:s100:prof        c7:s100:prof  	 c7:s100:prof	    c7	       p383b		c7:p383b:prof		c7:prof		-std=c++17		
-c7:s100:debug       c7:s100:debug 	 c7:s100:debug	    c7	       p383b		c7:p383b:debug		c7:debug	-std=c++17
+qualifier    	   otsdaq	 	 otsdaq_utilities   epics      pqxx		notes
+e20:s100:prof       e20:s100:prof  	 e20:s100:prof	    e20	       e20:p383b:prof	-std=c++17		
+e20:s100:debug      e20:s100:debug 	 e20:s100:debug	    e20	       e20:p383b:debug	-std=c++17
+e19:s100:prof       e19:s100:prof  	 e19:s100:prof	    e19	       e19:p383b:prof	-std=c++17		
+e19:s100:debug      e19:s100:debug 	 e19:s100:debug	    e19	       e19:p383b:debug	-std=c++17
+c7:s100:prof        c7:s100:prof  	 c7:s100:prof	    c7	       c7:p383b:prof	-std=c++17		
+c7:s100:debug       c7:s100:debug 	 c7:s100:debug	    c7	       c7:p383b:debug	-std=c++17
 
-e19:s96:prof       e19:s96:prof  	 e19:s96:prof	    e19	       p372		e19:p372:prof		e19:prof	-std=c++17		
-e19:s96:debug      e19:s96:debug 	 e19:s96:debug	    e19	       p372		e19:p372:debug		e19:debug	-std=c++17		
-e19:s96:py2:prof   e19:s96:py2:prof  	 e19:s96:py2:prof   e19	       p2715a		e19:p2715a:prof		e19:prof	-std=c++17		
-e19:s96:py2:debug  e19:s96:py2:debug 	 e19:s96:py2:debug  e19	       p2715a		e19:p2715a:debug	e19:debug	-std=c++17
-c7:s96:prof        c7:s96:prof  	 c7:s96:prof	    c7	       p372		c7:p372:prof		c7:prof		-std=c++17		
-c7:s96:debug       c7:s96:debug 	 c7:s96:debug	    c7	       p372		c7:p372:debug		c7:debug	-std=c++17		
-c7:s96:py2:prof    c7:s96:py2:prof  	 c7:s96:py2:prof    c7	       p2715a		c7:p2715a:prof		c7:prof		-std=c++17		
-c7:s96:py2:debug   c7:s96:py2:debug 	 c7:s96:py2:debug   c7	       p2715a		c7:p2715a:debug		c7:debug	-std=c++17		
+e19:s96:prof       e19:s96:prof  	 e19:s96:prof	    e19	       e19:p372:prof	-std=c++17		
+e19:s96:debug      e19:s96:debug 	 e19:s96:debug	    e19	       e19:p372:debug	-std=c++17		
+e19:s96:py2:prof   e19:s96:py2:prof  	 e19:s96:py2:prof   e19	       e19:p2715a:prof	-std=c++17		
+e19:s96:py2:debug  e19:s96:py2:debug 	 e19:s96:py2:debug  e19	       e19:p2715a:debug	-std=c++17
+c7:s96:prof        c7:s96:prof  	 c7:s96:prof	    c7	       c7:p372:prof	-std=c++17		
+c7:s96:debug       c7:s96:debug 	 c7:s96:debug	    c7	       c7:p372:debug	-std=c++17		
+c7:s96:py2:prof    c7:s96:py2:prof  	 c7:s96:py2:prof    c7	       c7:p2715a:prof	-std=c++17		
+c7:s96:py2:debug   c7:s96:py2:debug 	 c7:s96:py2:debug   c7	       c7:p2715a:debug	-std=c++17		
 
-e19:s87:prof       e19:s87:prof  	 e19:s87:prof       e19        p2715a          	e19:p2715a:prof         e19:prof        -std=c++17
-e19:s87:debug      e19:s87:debug  	 e19:s87:debug      e19        p2715a          	e19:p2715a:debug        e19:debug       -std=c++17
-e17:s87:prof       e17:s87:prof  	 e17:s87:prof       e17        p2715a          	e17:p2715a:prof         e17:prof        -std=c++17
-e17:s87:debug      e17:s87:debug  	 e17:s87:debug      e17        p2715a          	e17:p2715a:debug        e17:debug       -std=c++17
+e19:s87:prof       e19:s87:prof  	 e19:s87:prof       e19        e19:p2715a:prof  -std=c++17
+e19:s87:debug      e19:s87:debug  	 e19:s87:debug      e19        e19:p2715a:debug -std=c++17
+e17:s87:prof       e17:s87:prof  	 e17:s87:prof       e17        e17:p2715a:prof  -std=c++17
+e17:s87:debug      e17:s87:debug  	 e17:s87:debug      e17        e17:p2715a:debug -std=c++17
 
-e17:s85:prof       e17:s85:prof  e17:s85:prof            e17    p2715a          e17:p2715a:prof         e17:prof        -std=c++17
-e17:s85:debug      e17:s85:debug e17:s85:debug           e17    p2715a          e17:p2715a:debug        e17:debug       -std=c++17
+e17:s85:prof       e17:s85:prof  	 e17:s85:prof       e17        e17:p2715a:prof  -std=c++17
+e17:s85:debug      e17:s85:debug 	 e17:s85:debug      e17        e17:p2715a:debug -std=c++17
 
 end_qualifier_list
 
