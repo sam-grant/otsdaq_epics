@@ -28,6 +28,8 @@ simple_plugin(EpicsInterface "slowcontrols"
 	 Configurable
 	 ConfigurationInterface
 	 SlowControlsTableBase
+	 TableCore
+	 Macros
 	${XDAQ_XERCES-C} 
 	${MF_MESSAGELOGGER}
 	 $ENV{POSTGRESQL_LIBRARIES}/libpq.so
