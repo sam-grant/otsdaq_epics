@@ -1204,7 +1204,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(const st
 	{
 		if(dcsArchiveDbConnStatus_ == 1)
 		{
-			PGresult* res;
+			PGresult* res = nullptr;
 			try
 			{
 				char     		buffer[1024];
@@ -1285,7 +1285,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getLastAlarms(const std::s
 
 	if(dcsAlarmDbConnStatus_ == 1)
 	{
-		PGresult* res;
+		PGresult* res = nullptr;
 		try
 		{
 			char  		buffer[1024];
@@ -1391,7 +1391,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getAlarmsLog(const std::st
 
 	if(dcsLogDbConnStatus_ == 1)
 	{
-		PGresult*   res;
+		PGresult*   res = nullptr;
 		try
 		{
 			char        buffer[1024];
@@ -1669,7 +1669,7 @@ void EpicsInterface::configure()
 					try
 					{
 						//ACTION FOR DB ARCHIVER CHANNEL TABLE
-						int num = snprintf(buffer, sizeof(buffer),
+					  snprintf(buffer, sizeof(buffer),
 						"SELECT name FROM channel WHERE name = '%s';", pvName.c_str());
 
 						res     = PQexec(dcsArchiveDbConn, buffer);
@@ -1688,7 +1688,7 @@ void EpicsInterface::configure()
 							//UPDATE DB ARCHIVER CHANNEL TABLE
 							PQclear(res);
 							__COUT__ << "configure(): Updating PV: " << pvName << " in the Archiver Database channel table" << __E__;
-							num = snprintf(buffer, sizeof(buffer),
+							 snprintf(buffer, sizeof(buffer),
 											"UPDATE channel SET					\
 															  grp_id=%d			\
 															, smpl_mode_id=%d	\
@@ -1716,7 +1716,7 @@ void EpicsInterface::configure()
 							//INSERT INTO DB ARCHIVER CHANNEL TABLE
 							PQclear(res);
 							__COUT__ << "configure(): Writing new PV in the Archiver Database channel table" << __E__;
-							num = snprintf(buffer, sizeof(buffer),
+							snprintf(buffer, sizeof(buffer),
 							"INSERT INTO channel(					\
 												  name				\
 												, descr				\
@@ -1740,7 +1740,7 @@ void EpicsInterface::configure()
 						}
 
 						//ACTION FOR DB ARCHIVER NUM_METADATA TABLE
-						num = snprintf(buffer, sizeof(buffer),
+						snprintf(buffer, sizeof(buffer),
 						"SELECT channel.channel_id FROM channel, num_metadata WHERE channel.channel_id = num_metadata.channel_id AND channel.name = '%s';", pvName.c_str());
 
 						res     = PQexec(dcsArchiveDbConn, buffer);
@@ -1761,7 +1761,7 @@ void EpicsInterface::configure()
 							__COUT__ << "configure(): Updating PV: " << pvName
 										<< " channel_id: " << channel_id << " in the Archiver Database num_metadata table" << __E__;
 							PQclear(res);
-							num = snprintf(buffer, sizeof(buffer),
+							snprintf(buffer, sizeof(buffer),
 							"UPDATE num_metadata SET					\
 												  low_disp_rng=%f		\
 												, high_disp_rng=%f		\
@@ -1787,7 +1787,7 @@ void EpicsInterface::configure()
 						else
 						{
 							//INSERT INTO DB ARCHIVER NUM_METADATA TABLE
-							num = snprintf(buffer, sizeof(buffer), "SELECT channel_id FROM channel WHERE name = '%s';", pvName.c_str());
+							snprintf(buffer, sizeof(buffer), "SELECT channel_id FROM channel WHERE name = '%s';", pvName.c_str());
 
 							res = PQexec(dcsArchiveDbConn, buffer);
 							__COUT__ << "configure(): SELECT channel table to check channel_id for num_metadata table. PQntuples(res): " << PQntuples(res) << __E__;
@@ -1806,7 +1806,7 @@ void EpicsInterface::configure()
 								__COUT__ << "configure(): Writing new PV in the Archiver Database num_metadata table" << __E__;
 								PQclear(res);
 
-								num = snprintf(buffer, sizeof(buffer),
+								snprintf(buffer, sizeof(buffer),
 								"INSERT INTO num_metadata(			\
 												  channel_id		\
 												, low_disp_rng		\
