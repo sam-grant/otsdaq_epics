@@ -35,10 +35,8 @@ cet_set_compiler_flags(
  VIGILANT
  WERROR
  NO_UNDEFINED
- EXTRA_FLAGS -pedantic -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-maybe-uninitialized -Wno-ignored-qualifiers -Wno-unused-variable
+ EXTRA_FLAGS -pedantic
  )
- 
-cet_remove_compiler_flags(-std=c++98)
  
 
 #string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )

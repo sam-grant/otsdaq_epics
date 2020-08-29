@@ -4,6 +4,8 @@
 #include "otsdaq/TablePlugins/SlowControlsTableBase/SlowControlsTableBase.h"
 #include "otsdaq/ConfigurationInterface/ConfigurationManager.h"
 
+
+#pragma GCC diagnostic push
 //#include "/mu2e/ups/epics/v3_15_4/Linux64bit+2.6-2.12-e10/include/alarm.h"
 //#include "alarmString.h"
 #include "cadef.h"  //EPICS Channel Access:
@@ -16,6 +18,7 @@
 // -Wl,-rpath,$EPICS_BASE/lib/linux-x86_64 -lca -lCom -I$EPICS_BASE//include
 // -I$EPICS_BASE//include/os/Linux -I$EPICS_BASE/include/compiler/gcc -o
 // EpicsWebClient
+#pragma GCC diagnostic pop
 
 // clang-format off
 #define DEBUG false
@@ -108,7 +111,7 @@ std::string EpicsInterface::getList(const std::string& format)
 			if(dcsArchiveDbConnStatus_ == 1)
 			{
 				res     = PQexec(dcsArchiveDbConn, buffer);
-				int num = snprintf(buffer, sizeof(buffer), "SELECT smpl_mode_id, smpl_per FROM channel WHERE name = '%s'", (it->first).c_str());
+				/*int num = */snprintf(buffer, sizeof(buffer), "SELECT smpl_mode_id, smpl_per FROM channel WHERE name = '%s'", (it->first).c_str());
 
 				if(PQresultStatus(res) == PGRES_TUPLES_OK)
 				{
@@ -152,7 +155,7 @@ void EpicsInterface::subscribe(const std::string& pvName)
 		return;
 	}
 	createChannel(pvName);
-	sleep(0.1);  // what makes the console hang at startup
+	usleep(10000);  // what makes the console hang at startup
 	subscribeToChannel(pvName, mapOfPVInfo_.find(pvName)->second->channelType);
 	// SEVCHK(ca_poll(), "EpicsInterface::subscribe() : ca_poll");  //print outs
 	// that handle takeover the console; can make our own error handler
@@ -215,10 +218,10 @@ void EpicsInterface::unsubscribe(const std::string& pvName)
 //------------------------------------------------------------------------------------------------------------
 void EpicsInterface::eventCallback(struct event_handler_args eha)
 {
-	chid chid = eha.chid;
+  //chid chid = eha.chid;
 	if(eha.status == ECA_NORMAL)
 	{
-		int                  i;
+	  //		int                  i;
 		union db_access_val* pBuf = (union db_access_val*)eha.dbr;
 		if(DEBUG)
 		{
@@ -526,7 +529,7 @@ void EpicsInterface::loadListOfPVs()
 		std::string cluster = "Mu2e";
 
 		__GEN_COUT__ << "Reading database PVS List" << __E__;
-		int num = snprintf(buffer, sizeof(buffer), "SELECT COUNT(%s) FROM channel", std::string("channel_id").c_str());
+		/*int num =*/ snprintf(buffer, sizeof(buffer), "SELECT COUNT(%s) FROM channel", std::string("channel_id").c_str());
 		res     = PQexec(dcsArchiveDbConn, buffer);
 
 		if(PQresultStatus(res) == PGRES_TUPLES_OK)
@@ -536,7 +539,7 @@ void EpicsInterface::loadListOfPVs()
 			PQclear(res);
 			for (int i = 1; i <= rows; i++)
 			{
-				int num = snprintf(buffer, sizeof(buffer), "SELECT name FROM channel WHERE channel_id = '%d'", i);
+			  /*int num =*/ snprintf(buffer, sizeof(buffer), "SELECT name FROM channel WHERE channel_id = '%d'", i);
 				res     = PQexec(dcsArchiveDbConn, buffer);
 				if(PQresultStatus(res) == PGRES_TUPLES_OK)
 				{
@@ -700,7 +703,7 @@ void EpicsInterface::printChidInfo(chid chid, const std::string& message)
 	__COUT__ << "read(" << ca_read_access(chid) << ") write(" << ca_write_access(chid) << ") state(" << ca_state(chid) << ")" << __E__;
 }
 
-void EpicsInterface::subscribeToChannel(const std::string& pvName, chtype subscriptionType)
+void EpicsInterface::subscribeToChannel(const std::string& pvName, chtype /*subscriptionType*/)
 {
 	if(!checkIfPVExists(pvName))
 	{
@@ -805,7 +808,7 @@ void EpicsInterface::cancelSubscriptionToChannel(const std::string& pvName)
 	return;
 }
 
-void EpicsInterface::readValueFromPV(const std::string& pvName)
+void EpicsInterface::readValueFromPV(const std::string& /*pvName*/)
 {
 	// SEVCHK(ca_get(DBR_String, 0, mapOfPVInfo_.find(pvName)->second->channelID,
 	// &(mapOfPVInfo_.find(pvName)->second->pvValue), eventCallback,
@@ -1208,7 +1211,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(const st
 				std::string		row;
 
 				// VIEW LAST 10 UPDATES
-				int num = snprintf(buffer,
+				/*int num =*/ snprintf(buffer,
 				                   sizeof(buffer),
 				                   "SELECT FLOOR(EXTRACT(EPOCH FROM smpl_time)), float_val, status.name, "
 				                   "severity.name, smpl_per FROM channel, sample, status, severity WHERE "
@@ -1289,7 +1292,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getLastAlarms(const std::s
 			std::string row;
 
 			// ACTION FOR ALARM DB CHANNEL TABLE
-			int num = snprintf(buffer, sizeof(buffer),
+			/*int num =*/ snprintf(buffer, sizeof(buffer),
 						"SELECT   pv.component_id							\
 								, alarm_tree.name							\
 								, pv.descr									\
@@ -1395,7 +1398,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getAlarmsLog(const std::st
 			std::string row;
 
 			// ACTION FOR ALARM DB CHANNEL TABLE
-			int num = snprintf(buffer, sizeof(buffer),
+			/*int num = */snprintf(buffer, sizeof(buffer),
 						"SELECT DISTINCT												\
 							  message.id												\
 							, message.name												\

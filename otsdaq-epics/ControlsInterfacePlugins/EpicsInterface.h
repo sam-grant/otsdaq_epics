@@ -115,20 +115,20 @@ class EpicsInterface : public SlowControlsVInterface
 	static const std::string 				EPICS_MINOR_ALARM;
 	static const std::string 				EPICS_MAJOR_ALARM;
 
-	void 									initialize				(void);
+	void 									initialize				(void) override;
 	void 									destroy					(void);
 
-	std::vector<std::string>   				getChannelList			(void);
-	std::string               				getList					(const std::string& format);
-	void                       				subscribe				(const std::string& pvName);
-	void                       				subscribeJSON			(const std::string& JSONpvList);
-	void                       				unsubscribe				(const std::string& pvName);
-	std::array<std::string, 4> 				getCurrentValue			(const std::string& pvName);
-	std::array<std::string, 9> 				getSettings				(const std::string& pvName);
-	std::vector<std::vector<std::string>> 	getChannelHistory		(const std::string& pvName);
-	std::vector<std::vector<std::string>>	getLastAlarms			(const std::string& pvName);
-	std::vector<std::vector<std::string>>	getAlarmsLog			(const std::string& pvName);
-	std::vector<std::vector<std::string>>	checkAlarmNotifications	(void);
+	std::vector<std::string>   				getChannelList			(void) override;
+	std::string               				getList					(const std::string& format) override;
+	void                       				subscribe				(const std::string& pvName) override;
+	void                       				subscribeJSON			(const std::string& JSONpvList) override;
+	void                       				unsubscribe				(const std::string& pvName) override;
+	std::array<std::string, 4> 				getCurrentValue			(const std::string& pvName) override;
+	std::array<std::string, 9> 				getSettings				(const std::string& pvName) override;
+	std::vector<std::vector<std::string>> 	getChannelHistory		(const std::string& pvName) override;
+	std::vector<std::vector<std::string>>	getLastAlarms			(const std::string& pvName) override;
+	std::vector<std::vector<std::string>>	getAlarmsLog			(const std::string& pvName) override;
+	std::vector<std::vector<std::string>>	checkAlarmNotifications	(void) override;
 	std::vector<std::string> 				checkAlarm				(const std::string& pvName, bool ignoreMinor = false);
 
 	void 									dbSystemLogin			(void);
@@ -143,7 +143,7 @@ class EpicsInterface : public SlowControlsVInterface
 	virtual void 							halt					(void) override { handleAlarmsForFSM("halt",		getSelfNode().getNode("LinkToHaltAlarmsToMonitorTable")); }
 	virtual void 							pause					(void) override { handleAlarmsForFSM("pause",		getSelfNode().getNode("LinkToPauseAlarmsToMonitorTable")); }
 	virtual void 							resume					(void) override { handleAlarmsForFSM("resume",		getSelfNode().getNode("LinkToResumeAlarmsToMonitorTable")); }
-	virtual void 							start					(std::string runNumber) override  { handleAlarmsForFSM("start",getSelfNode().getNode("LinkToStartAlarmsToMonitorTable")); }
+	virtual void 							start					(std::string /*runNumber*/) override  { handleAlarmsForFSM("start",getSelfNode().getNode("LinkToStartAlarmsToMonitorTable")); }
 	virtual void 							stop					(void) override { handleAlarmsForFSM("stop",		getSelfNode().getNode("LinkToStopAlarmsToMonitorTable")); }
 
 	// States
