@@ -1534,8 +1534,16 @@ std::vector<std::vector<std::string>> EpicsInterface::checkAlarmNotifications()
 				{
 					__COUT__ << "checkAlarmNotifications() alarmToNotify: " << alarmToNotify.first << __E__;
 
-					alarmRow = checkAlarm(alarmToNotify.second.getNode("AlarmChannelName").getValue<std::string>(),
+					try
+					{
+						alarmRow = checkAlarm(alarmToNotify.second.getNode("AlarmChannelName").getValue<std::string>(),
 					                         alarmToNotify.second.getNode("IgnoreMinorSeverity").getValue<bool>());
+					}
+					catch(const std::exception& e)
+					{
+						__COUT__ << "checkAlarmNotifications() alarmToNotify: " << alarmToNotify.first << " not in PVs List!!!" << __E__;
+						continue;
+					}
 					alarmRow.push_back(alarmToNotify.first);
 					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("WhoToNotify").getValue<std::string>());
 					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendEmail").getValue<std::string>());
