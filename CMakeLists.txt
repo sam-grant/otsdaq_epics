@@ -89,8 +89,10 @@ include(CetTest)
 # Code
 add_subdirectory(otsdaq-epics)
 
-# doxygen
-add_subdirectory(doc)
+# Documentation (to comment out if not needed DOXYGEN locally)
+if( $ENV{OTS_DOXY} MATCHES "DOIT" )
+	add_subdirectory(doc)
+endif()
 
 # UPS Config
 add_subdirectory(ups)
