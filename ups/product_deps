@@ -1,7 +1,7 @@
 
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent otsdaq_epics	v2_05_06
+parent otsdaq_epics	v2_05_07_indev
 defaultqual	e19:s96
 
 # These optional lines define the installed directories where
