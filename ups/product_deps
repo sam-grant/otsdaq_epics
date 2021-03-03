@@ -1,8 +1,8 @@
 
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent otsdaq_epics	v2_05_06
-defaultqual	e19:s96
+parent otsdaq_epics	v2_05_07
+defaultqual	e19:s97
 
 # These optional lines define the installed directories where
 # headers, libraries, and executables will be found
@@ -19,8 +19,8 @@ fcldir      fq_dir      fcl
 
 #
 product				version		optional
-otsdaq				v2_05_06
-otsdaq_utilities	v2_05_06
+otsdaq				v2_05_07
+otsdaq_utilities	v2_05_07
 epics				v3_15_8
 pqxx				v6_2_5d
 cetbuildtools		v7_17_01	-	only_for_build
@@ -29,6 +29,20 @@ end_product_list
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
 qualifier			otsdaq				otsdaq_utilities	epics	pqxx				notes
+e20:s106:prof		e20:s106:prof		e20:s106:prof		e20		e20:p383b:prof		-std=c++17
+e20:s106:debug		e20:s106:debug		e20:s106:debug		e20		e20:p383b:debug		-std=c++17
+e19:s106:prof		e19:s106:prof		e19:s106:prof		e19		e19:p383b:prof		-std=c++17
+e19:s106:debug		e19:s106:debug		e19:s106:debug		e19		e19:p383b:debug		-std=c++17
+c7:s106:prof		c7:s106:prof		c7:s106:prof		c7		c7:p383b:prof		-std=c++17
+c7:s106:debug		c7:s106:debug		c7:s106:debug		c7		c7:p383b:debug		-std=c++17
+
+e20:s105:prof		e20:s105:prof		e20:s105:prof		e20		e20:p383b:prof		-std=c++17
+e20:s105:debug		e20:s105:debug		e20:s105:debug		e20		e20:p383b:debug		-std=c++17
+e19:s105:prof		e19:s105:prof		e19:s105:prof		e19		e19:p383b:prof		-std=c++17
+e19:s105:debug		e19:s105:debug		e19:s105:debug		e19		e19:p383b:debug		-std=c++17
+c7:s105:prof		c7:s105:prof		c7:s105:prof		c7		c7:p383b:prof		-std=c++17
+c7:s105:debug		c7:s105:debug		c7:s105:debug		c7		c7:p383b:debug		-std=c++17
+
 e20:s104:prof		e20:s104:prof		e20:s104:prof		e20		e20:p383b:prof		-std=c++17
 e20:s104:debug		e20:s104:debug		e20:s104:debug		e20		e20:p383b:debug		-std=c++17
 e19:s104:prof		e19:s104:prof		e19:s104:prof		e19		e19:p383b:prof		-std=c++17
@@ -45,22 +59,6 @@ c7:s103:debug		c7:s103:debug		c7:s103:debug		c7		c7:p372:debug		-std=c++17
 c7:s103:py2:prof	c7:s103:py2:prof	c7:s103:py2:prof	c7		c7:p2715a:prof		-std=c++17
 c7:s103:py2:debug	c7:s103:py2:debug	c7:s103:py2:debug	c7		c7:p2715a:debug		-std=c++17
 
-e19:s102:prof		e19:s102:prof		e19:s102:prof		e19		e19:p372:prof		-std=c++17
-e19:s102:debug		e19:s102:debug		e19:s102:debug		e19		e19:p372:debug		-std=c++17
-e19:s102:py2:prof	e19:s102:py2:prof	e19:s102:py2:prof	e19		e19:p2715a:prof		-std=c++17
-e19:s102:py2:debug	e19:s102:py2:debug	e19:s102:py2:debug	e19		e19:p2715a:debug	-std=c++17
-c7:s102:prof		c7:s102:prof		c7:s102:prof		c7		c7:p372:prof		-std=c++17
-c7:s102:debug		c7:s102:debug		c7:s102:debug		c7		c7:p372:debug		-std=c++17
-c7:s102:py2:prof	c7:s102:py2:prof	c7:s102:py2:prof	c7		c7:p2715a:prof		-std=c++17
-c7:s102:py2:debug	c7:s102:py2:debug	c7:s102:py2:debug	c7		c7:p2715a:debug		-std=c++17
-
-e20:s101:prof		e20:s101:prof		e20:s101:prof		e20		e20:p383b:prof		-std=c++17
-e20:s101:debug		e20:s101:debug		e20:s101:debug		e20		e20:p383b:debug		-std=c++17
-e19:s101:prof		e19:s101:prof		e19:s101:prof		e19		e19:p383b:prof		-std=c++17
-e19:s101:debug		e19:s101:debug		e19:s101:debug		e19		e19:p383b:debug		-std=c++17
-c7:s101:prof		c7:s101:prof		c7:s101:prof		c7		c7:p383b:prof		-std=c++17
-c7:s101:debug		c7:s101:debug		c7:s101:debug		c7		c7:p383b:debug		-std=c++17
-
 e19:s97:prof		e19:s97:prof		e19:s97:prof		e19		e19:p372:prof		-std=c++17
 e19:s97:debug		e19:s97:debug		e19:s97:debug		e19		e19:p372:debug		-std=c++17
 e19:s97:py2:prof	e19:s97:py2:prof	e19:s97:py2:prof	e19		e19:p2715a:prof		-std=c++17
@@ -70,22 +68,6 @@ c7:s97:debug		c7:s97:debug		c7:s97:debug		c7		c7:p372:debug		-std=c++17
 c7:s97:py2:prof		c7:s97:py2:prof		c7:s97:py2:prof		c7		c7:p2715a:prof		-std=c++17
 c7:s97:py2:debug	c7:s97:py2:debug	c7:s97:py2:debug	c7		c7:p2715a:debug		-std=c++17
 
-e19:s96:prof		e19:s96:prof		e19:s96:prof		e19		e19:p372:prof		-std=c++17
-e19:s96:debug		e19:s96:debug		e19:s96:debug		e19		e19:p372:debug		-std=c++17
-e19:s96:py2:prof	e19:s96:py2:prof	e19:s96:py2:prof	e19		e19:p2715a:prof		-std=c++17
-e19:s96:py2:debug	e19:s96:py2:debug	e19:s96:py2:debug	e19		e19:p2715a:debug	-std=c++17
-c7:s96:prof			c7:s96:prof			c7:s96:prof			c7		c7:p372:prof		-std=c++17
-c7:s96:debug		c7:s96:debug		c7:s96:debug		c7		c7:p372:debug		-std=c++17
-c7:s96:py2:prof		c7:s96:py2:prof		c7:s96:py2:prof		c7		c7:p2715a:prof		-std=c++17
-c7:s96:py2:debug	c7:s96:py2:debug	c7:s96:py2:debug	c7		c7:p2715a:debug		-std=c++17
-
-e19:s87:prof		e19:s87:prof		e19:s87:prof		e19		e19:p2715a:prof		-std=c++17
-e19:s87:debug		e19:s87:debug		e19:s87:debug		e19		e19:p2715a:debug	-std=c++17
-e17:s87:prof		e17:s87:prof		e17:s87:prof		e17		e17:p2715a:prof		-std=c++17
-e17:s87:debug		e17:s87:debug		e17:s87:debug		e17		e17:p2715a:debug	-std=c++17
-
-e17:s85:prof		e17:s85:prof		e17:s85:prof		e17		e17:p2715a:prof		-std=c++17
-e17:s85:debug		e17:s85:debug		e17:s85:debug		e17		e17:p2715a:debug	-std=c++17
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:

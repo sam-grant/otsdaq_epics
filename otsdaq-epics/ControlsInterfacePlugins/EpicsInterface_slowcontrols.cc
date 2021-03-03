@@ -1116,13 +1116,19 @@ void EpicsInterface::dbSystemLogin()
 	dcsAlarmDbConnStatus_   = 0;
 	dcsLogDbConnStatus_     = 0;
 
+	char* dbname_ = const_cast < char *> (getenv("DCS_ARCHIVE_DATABASE")? getenv("DCS_ARCHIVE_DATABASE") : "dcs_archive");
+	char* dbhost_ = const_cast < char *> (getenv("DCS_ARCHIVE_DATABASE_HOST")? getenv("DCS_ARCHIVE_DATABASE_HOST") : "");
+	char* dbport_ = const_cast < char *> (getenv("DCS_ARCHIVE_DATABASE_PORT")? getenv("DCS_ARCHIVE_DATABASE_PORT") : "");
+	char* dbuser_ = const_cast < char *> (getenv("DCS_ARCHIVE_DATABASE_USER")? getenv("DCS_ARCHIVE_DATABASE_USER") : "");
+	char* dbpwd_  = const_cast < char *> (getenv("DCS_ARCHIVE_DATABASE_PWD")? getenv("DCS_ARCHIVE_DATABASE_PWD") : "");
+
+	//open db connections
+	char dcsArchiveDbConnInfo [1024];
+	sprintf(dcsArchiveDbConnInfo, "dbname=%s host=%s port=%s  \
+		user=%s password=%s", dbname_, dbhost_, dbport_, dbuser_, dbpwd_);
+
 	// dcs_archive Db Connection
-	dcsArchiveDbConn = PQconnectdb(
-	    //"dbname=dcs_archive host=mu2edaq12 port=5432 "
-	    //"user=dcs_writer password=ses3e-17!dcs_writer");
-	    //"user=dcs_reader password=ses3e-17!dcs_reader");
-	    "dbname=dcs_archive host=mu2edaq15 port=5434 "
-	    "user=dcs_writer password=Write4Dcs");
+	dcsArchiveDbConn = PQconnectdb(dcsArchiveDbConnInfo);
 
 	if(PQstatus(dcsArchiveDbConn) == CONNECTION_BAD)
 	{
@@ -1136,12 +1142,16 @@ void EpicsInterface::dbSystemLogin()
 	}
 
 	// dcs_alarm Db Connection
-	dcsAlarmDbConn = PQconnectdb(
-		//"dbname=dcs_alarm host=mu2edaq12 port=5432 "
-		//"user=dcs_reader password=ses3e-17!dcs_reader");
-		//"user=dcs_writer password=ses3e-17!dcs_writer");
-	    "dbname=dcs_alarm host=mu2edaq15 port=5434 "
-		"user=dcs_reader password=Read4Dcs");
+	dbname_ = const_cast < char *> (getenv("DCS_ALARM_DATABASE")? getenv("DCS_ALARM_DATABASE") : "dcs_alarm");
+	dbhost_ = const_cast < char *> (getenv("DCS_ALARM_DATABASE_HOST")? getenv("DCS_ALARM_DATABASE_HOST") : "");
+	dbport_ = const_cast < char *> (getenv("DCS_ALARM_DATABASE_PORT")? getenv("DCS_ALARM_DATABASE_PORT") : "");
+	dbuser_ = const_cast < char *> (getenv("DCS_ALARM_DATABASE_USER")? getenv("DCS_ALARM_DATABASE_USER") : "");
+	dbpwd_  = const_cast < char *> (getenv("DCS_ALARM_DATABASE_PWD")? getenv("DCS_ALARM_DATABASE_PWD") : "");
+	char dcsAlarmDbConnInfo [1024];
+	sprintf(dcsAlarmDbConnInfo, "dbname=%s host=%s port=%s  \
+		user=%s password=%s", dbname_, dbhost_, dbport_, dbuser_, dbpwd_);
+
+	dcsAlarmDbConn = PQconnectdb(dcsAlarmDbConnInfo);
 
 	if(PQstatus(dcsAlarmDbConn) == CONNECTION_BAD)
 	{
@@ -1155,12 +1165,16 @@ void EpicsInterface::dbSystemLogin()
 	}
 
 	// dcs_log Db Connection
-	dcsLogDbConn = PQconnectdb(
-		//"dbname=dcs_log host=mu2edaq12 port=5432 "
-		//"user=dcs_reader password=ses3e-17!dcs_reader");
-		//"user=dcs_writer password=ses3e-17!dcs_writer");
-		"dbname=dcs_log host=mu2edaq15 port=5434 "
-		"user=dcs_reader password=Read4Dcs");
+	dbname_ = const_cast < char *> (getenv("DCS_LOG_DATABASE")? getenv("DCS_LOG_DATABASE") : "dcs_log");
+	dbhost_ = const_cast < char *> (getenv("DCS_LOG_DATABASE_HOST")? getenv("DCS_LOG_DATABASE_HOST") : "");
+	dbport_ = const_cast < char *> (getenv("DCS_LOG_DATABASE_PORT")? getenv("DCS_LOG_DATABASE_PORT") : "");
+	dbuser_ = const_cast < char *> (getenv("DCS_LOG_DATABASE_USER")? getenv("DCS_LOG_DATABASE_USER") : "");
+	dbpwd_  = const_cast < char *> (getenv("DCS_LOG_DATABASE_PWD")? getenv("DCS_LOG_DATABASE_PWD") : "");
+	char dcsLogDbConnInfo [1024];
+	sprintf(dcsLogDbConnInfo, "dbname=%s host=%s port=%s  \
+		user=%s password=%s", dbname_, dbhost_, dbport_, dbuser_, dbpwd_);
+
+	dcsLogDbConn = PQconnectdb(dcsLogDbConnInfo);
 
 	if(PQstatus(dcsLogDbConn) == CONNECTION_BAD)
 	{
