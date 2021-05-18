@@ -20,13 +20,13 @@ simple_plugin(EpicsInterface "slowcontrols"
 	 ${EPICS_CA}
 	 ${EPICS_COM}
 	 ${XDAQ_BASIC_LIB_LIST}	 
-	 SlowControlsCore
-	 PluginMakers
-	 Configurable
-	 ConfigurationInterface
-	 SlowControlsTableBase
-	 TableCore
-	 Macros
+	 otsdaq::SlowControlsCore
+	 otsdaq::PluginMakers
+	 otsdaq::Configurable
+	 otsdaq::ConfigurationInterface
+	 otsdaq::SlowControlsTableBase
+	 otsdaq::TableCore
+	 otsdaq::Macros
 	${XDAQ_XERCES-C} 
 	${MF_MESSAGELOGGER}
 	 $ENV{POSTGRESQL_LIBRARIES}/libpq.so
