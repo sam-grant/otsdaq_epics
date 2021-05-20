@@ -55,7 +55,7 @@ find_ups_product( artdaq v0_04_02 )
 find_ups_product( artdaq_core v1_00_00 )
 find_ups_product( artdaq_utilities v1_00_00 )
 find_ups_product( artdaq_database v1_03_07 )
-link_directories($ENV{ARTDAQ_DATABASE_LIB})
+find_ups_product( xdaq v16_7_0_1)
 find_ups_product( art v1_06_00 )
 find_ups_product( fhiclcpp v2_16_00 )
 find_ups_product( messagefacility v1_10_00 )
@@ -65,15 +65,20 @@ find_ups_boost( v1_50_0 filesystem
                         program_options
                         unit_test_framework
  )
-
-
-##find_package(MPI QUIET)
-
-
-
-find_library( EPICS_CA NAMES ca PATHS $ENV{EPICS_LIBRARY} )
-find_library( EPICS_COM NAMES Com PATHS $ENV{EPICS_LIBRARY} )
-
+ 
+ # XDAQ Extra setup
+ include_directories($ENV{XDAQ_INC}/linux)
+link_directories($ENV{XDAQ_LIB})
+link_directories($ENV{ARTDAQ_DATABASE_LIB})
+ set(XDAQ_BASIC_LIB_LIST 
+   xcept
+   xoap
+   xdaq
+   toolbox
+   xerces-c
+   cgicc
+ )
+ set(XDAQ_XERCES-C xerces-c)
 
 # macros for art_dictionary and simple_plugin
 #include(ArtDictionary)
