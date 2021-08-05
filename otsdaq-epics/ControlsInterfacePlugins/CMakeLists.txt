@@ -25,13 +25,13 @@ simple_plugin(EpicsInterface "slowcontrols"
 	 otsdaq::TableCore
 	 otsdaq::Macros
 	${XDAQ_XERCES-C} 
-	${MF_MESSAGELOGGER}
+	MF_MessageLogger
 	 pq # from postgresql
   )
 
 #simple_plugin(ControlsOtsInterface "slowcontrols"	
 #    	ControlsCore
-#	${CETLIB}
+#	cetlib
 #	Configurable
 #        ConfigurationInterface
 #  )
