@@ -10,17 +10,14 @@
 # use cmake 3.17 or later
 cmake_minimum_required (VERSION 3.17)
 
+find_package(cetmodules)
+set(CET_CETBUILDTOOLS_COMPAT TRUE)
+include(Compatibility)
+set(CET_WARN_DEPRECATED)
 
-project(otsdaq_epics VERSION 2.06.02)
-# cetbuildtools contains our cmake modules
-SET ( CETBUILDTOOLS_VERSION $ENV{CETBUILDTOOLS_VERSION} )
-IF (NOT CETBUILDTOOLS_VERSION)
-    MESSAGE (FATAL_ERROR "ERROR: setup cetbuildtools to get the cmake modules")
-ENDIF()
+project(otsdaq_epics VERSION 2.06.03)
 
 set(CMAKE_MODULE_PATH 
-        $ENV{ART_DIR}/Modules
-        $ENV{CETBUILDTOOLS_DIR}/Modules
         $ENV{XDAQ_DIR}/Modules
         $ENV{ARTDAQ_UTILITIES_DIR}/Modules
         ${CMAKE_MODULE_PATH})
@@ -59,6 +56,7 @@ find_ups_product( xdaq v16_7_0_1)
 find_ups_product( art v1_06_00 )
 find_ups_product( fhiclcpp v2_16_00 )
 find_ups_product( messagefacility v1_10_00 )
+find_ups_product( TRACE v3_03_00 )
 find_ups_product( cetlib v1_03_00 )
 find_ups_root( v5_34_00 )
 find_ups_boost( v1_50_0 filesystem
@@ -94,8 +92,4 @@ if( $ENV{OTS_DOXY} MATCHES "DOIT" )
 	add_subdirectory(doc)
 endif()
 
-# UPS Config
-add_subdirectory(ups)
-
-# packaging utility
-include(UseCPack)
+cet_cmake_config()

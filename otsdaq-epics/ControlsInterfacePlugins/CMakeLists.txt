@@ -13,7 +13,7 @@ include_directories($ENV{EPICS_BASE}/include/lib/linux-x86_64)
 link_directories($ENV{EPICS_LIBRARY})
 link_directories($ENV{POSTGRESQL_LIBRARIES})
 
-simple_plugin(EpicsInterface "slowcontrols"	
+basic_plugin(EpicsInterface "slowcontrols"	
 	 ca # From EPICS
 	 Com # From EPICS
 	 ${XDAQ_BASIC_LIB_LIST}	 
