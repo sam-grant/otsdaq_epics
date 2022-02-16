@@ -18,8 +18,8 @@ fcldir      fq_dir      fcl
 
 #
 product				version		optional
-otsdaq				v2_06_03
-otsdaq_utilities	v2_06_03
+otsdaq				v2_06_04
+otsdaq_utilities	v2_06_04
 epics				v3_15_8
 pqxx				v6_2_5e
 cetmodules			v2_26_00	-	only_for_build
@@ -28,20 +28,11 @@ end_product_list
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
 qualifier			otsdaq				otsdaq_utilities	epics	pqxx				notes
+e20:s114:prof		e20:s114:prof		e20:s114:prof		e20		e20:p399:prof		-std=c++17
+e20:s114:debug		e20:s114:debug		e20:s114:debug		e20		e20:p399:debug		-std=c++17
+
 e20:s112:prof		e20:s112:prof		e20:s112:prof		e20		e20:p392:prof		-std=c++17
 e20:s112:debug		e20:s112:debug		e20:s112:debug		e20		e20:p392:debug		-std=c++17
-e19:s112:prof		e19:s112:prof		e19:s112:prof		e19		e19:p392:prof		-std=c++17
-e19:s112:debug		e19:s112:debug		e19:s112:debug		e19		e19:p392:debug		-std=c++17
-c7:s112:prof		c7:s112:prof		c7:s112:prof		c7		c7:p392:prof		-std=c++17
-c7:s112:debug		c7:s112:debug		c7:s112:debug		c7		c7:p392:debug		-std=c++17
-
-e20:s110:prof		e20:s110:prof		e20:s110:prof		e20		e20:p383b:prof		-std=c++17
-e20:s110:debug		e20:s110:debug		e20:s110:debug		e20		e20:p383b:debug		-std=c++17
-e19:s110:prof		e19:s110:prof		e19:s110:prof		e19		e19:p383b:prof		-std=c++17
-e19:s110:debug		e19:s110:debug		e19:s110:debug		e19		e19:p383b:debug		-std=c++17
-c7:s110:prof		c7:s110:prof		c7:s110:prof		c7		c7:p383b:prof		-std=c++17
-c7:s110:debug		c7:s110:debug		c7:s110:debug		c7		c7:p383b:debug		-std=c++17
-
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
