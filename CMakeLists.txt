@@ -15,7 +15,7 @@ set(CET_CETBUILDTOOLS_COMPAT TRUE)
 include(Compatibility)
 set(CET_WARN_DEPRECATED)
 
-project(otsdaq_epics VERSION 2.06.04)
+project(otsdaq_epics VERSION 2.06.05)
 
 set(CMAKE_MODULE_PATH 
         $ENV{XDAQ_DIR}/Modules
