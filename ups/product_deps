@@ -18,11 +18,11 @@ fcldir      fq_dir      fcl
 
 #
 product				version		optional
-otsdaq				v2_06_05
-otsdaq_utilities	v2_06_05
+otsdaq				v2_06_06
+otsdaq_utilities	v2_06_06
 epics				v7_0_6_1
 pqxx				v6_2_5f
-cetmodules			v3_08_00	-	only_for_build
+cetmodules			v3_16_00	-	only_for_build
 end_product_list
 
 # -nq- here means there is no qualifier
