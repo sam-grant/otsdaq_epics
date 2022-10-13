@@ -1686,7 +1686,7 @@ void EpicsInterface::configure()
 
 				if(dcsArchiveDbConnStatus_ == 1)
 				{
-					PGresult* res;
+					PGresult* res = nullptr;
 					char      buffer[1024];
 					try
 					{
