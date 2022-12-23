@@ -1,4 +1,5 @@
 #include "alarm.h"  //Holds strings that we can use to access the alarm status, severity, and parameters
+#include "epicsMutex.h"
 #include "otsdaq-epics/ControlsInterfacePlugins/EpicsInterface.h"
 #include "otsdaq/Macros/SlowControlsPluginMacros.h"
 #include "otsdaq/TablePlugins/SlowControlsTableBase/SlowControlsTableBase.h"
@@ -1624,6 +1625,8 @@ void EpicsInterface::handleAlarmsForFSM(const std::string& fsmTransitionName, Co
 // Configure override for Epics
 void EpicsInterface::configure()
 {
+	return; //skipping to see if this is to blame
+	
 	handleAlarmsForFSM("configure", getSelfNode().getNode("LinkToConfigureAlarmsToMonitorTable"));
 
 	__COUT__ << "configure(): Preparing EPICS for PVs..." << __E__;
@@ -1871,12 +1874,15 @@ void EpicsInterface::configure()
 				}
 				else
 				{
-					__SS__ << "configure(): ARCHIVER DATABASE CONNECTION FAILED!!! " << __E__;
-					__SS_THROW__;
+					//RAR 21-Dec-2022: remove exception throwing for cases when db connection not expected
+					__COUT_INFO__ << "configure(): Archiver Database connection does not exist, so skipping channel update." << __E__;
+					// __SS_THROW__;
+					break;
 				}
 			} //end channel name loop
 		}
 	} //end slowControlsChannelsSourceTables loop
 }  // end configure()
+
 
 DEFINE_OTS_SLOW_CONTROLS(EpicsInterface)
