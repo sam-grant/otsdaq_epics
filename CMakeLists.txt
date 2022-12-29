@@ -28,7 +28,7 @@ cet_set_compiler_flags(
  EXTRA_FLAGS -pedantic
  )
  
-cet_report_compiler_flags()
+#cet_report_compiler_flags()
 
 find_package(otsdaq 2.06.06 REQUIRED)
 find_package(PostgreSQL 13.2 REQUIRED)
