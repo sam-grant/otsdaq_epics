@@ -59,7 +59,7 @@ if(BTYPE_UC STREQUAL DEBUG)
 	endif()
 endif()
  
-cet_report_compiler_flags()
+#cet_report_compiler_flags()
 
 find_package(otsdaq 2.06.06 REQUIRED)
 find_package(PostgreSQL 13.2 REQUIRED)
