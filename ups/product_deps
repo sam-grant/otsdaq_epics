@@ -48,8 +48,6 @@ c14:s122:debug		c14:s122:debug		c14:s122:debug		c14		c14:p3915:debug		-std=c++17
 
 c7:s118:prof		c7:s118:prof		c7:s118:prof		c7		c7:p3913:prof		-std=c++17
 c7:s118:debug		c7:s118:debug		c7:s118:debug		c7		c7:p3913:debug		-std=c++17
-c14:s118:prof		c14:s118:prof		c14:s118:prof		c14		c14:p3913:prof		-std=c++17
-c14:s118:debug		c14:s118:debug		c14:s118:debug		c14		c14:p3913:debug		-std=c++17
 
 c7:s112:prof		c7:s112:prof		c7:s112:prof		c7		c7:p392:prof		-std=c++17
 c7:s112:debug		c7:s112:debug		c7:s112:debug		c7		c7:p392:debug		-std=c++17
