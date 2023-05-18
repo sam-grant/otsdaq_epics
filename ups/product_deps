@@ -18,8 +18,8 @@ fcldir      fq_dir      fcl
 
 #
 product				version		optional
-otsdaq				v2_06_09
-otsdaq_utilities	v2_06_09
+otsdaq				v2_06_10
+otsdaq_utilities	v2_06_10
 epics				v7_0_7a
 pqxx				v7_7_4a
 cetmodules			v3_21_01	-	only_for_build
@@ -28,29 +28,38 @@ end_product_list
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
 qualifier			otsdaq				otsdaq_utilities	epics	pqxx				notes
-e20:s122:prof		e20:s122:prof		e20:s122:prof		e20		e20:p3915:prof		-std=c++17
-e20:s122:debug		e20:s122:debug		e20:s122:debug		e20		e20:p3915:debug		-std=c++17
-e26:s122:prof		e26:s122:prof		e26:s122:prof		e26		e26:p3915:prof		-std=c++17
-e26:s122:debug		e26:s122:debug		e26:s122:debug		e26		e26:p3915:debug		-std=c++17
+e20:s123:prof		e20:s123:prof		e20:s123:prof		e20		e20:p3915:prof		-std=c++17
+e20:s123:debug		e20:s123:debug		e20:s123:debug		e20		e20:p3915:debug		-std=c++17
+e26:s123:prof		e26:s123:prof		e26:s123:prof		e26		e26:p3915:prof		-std=c++17
+e26:s123:debug		e26:s123:debug		e26:s123:debug		e26		e26:p3915:debug		-std=c++17
+c15:s123:prof		c15:s123:prof		c15:s123:prof		c15		c15:p3915:prof		-std=c++17
+c15:s123:debug		c15:s123:debug		c15:s123:debug		c15		c15:p3915:debug		-std=c++17
+c14:s123:debug		c14:s123:debug		c14:s123:debug		c14		c14:p3915:debug		-std=c++17
+c14:s123:prof		c14:s123:prof		c14:s123:prof		c14		c14:p3915:prof		-std=c++17
 
-e20:s118:prof		e20:s118:prof		e20:s118:prof		e20		e20:p3913:prof		-std=c++17
-e20:s118:debug		e20:s118:debug		e20:s118:debug		e20		e20:p3913:debug		-std=c++17
-e26:s118:prof		e26:s118:prof		e26:s118:prof		e26		e26:p3913:prof		-std=c++17
-e26:s118:debug		e26:s118:debug		e26:s118:debug		e26		e26:p3913:debug		-std=c++17
+e20:s120a:prof		e20:s120a:prof		e20:s120a:prof		e20		e20:p3913:prof		-std=c++17
+e20:s120a:debug		e20:s120a:debug		e20:s120a:debug		e20		e20:p3913:debug		-std=c++17
+e26:s120a:prof		e26:s120a:prof		e26:s120a:prof		e26		e26:p3913:prof		-std=c++17
+e26:s120a:debug		e26:s120a:debug		e26:s120a:debug		e26		e26:p3913:debug		-std=c++17
+c14:s120a:debug		c14:s120a:debug		c14:s120a:debug		c14		c14:p3915:debug		-std=c++17
+c14:s120a:prof		c14:s120a:prof		c14:s120a:prof		c14		c14:p3915:prof		-std=c++17
+c7:s120a:prof		c7:s120a:prof		c7:s120a:prof		c7		c7:p3913:prof		-std=c++17
+c7:s120a:debug		c7:s120a:debug		c7:s120a:debug		c7		c7:p3913:debug		-std=c++17
+
+e20:s120:prof		e20:s120:prof		e20:s120:prof		e20		e20:p3913:prof		-std=c++17
+e20:s120:debug		e20:s120:debug		e20:s120:debug		e20		e20:p3913:debug		-std=c++17
+e26:s120:prof		e26:s120:prof		e26:s120:prof		e26		e26:p3913:prof		-std=c++17
+e26:s120:debug		e26:s120:debug		e26:s120:debug		e26		e26:p3913:debug		-std=c++17
+c14:s120:debug		c14:s120:debug		c14:s120:debug		c14		c14:p3915:debug		-std=c++17
+c14:s120:prof		c14:s120:prof		c14:s120:prof		c14		c14:p3915:prof		-std=c++17
+c7:s120:prof		c7:s120:prof		c7:s120:prof		c7		c7:p3913:prof		-std=c++17
+c7:s120:debug		c7:s120:debug		c7:s120:debug		c7		c7:p3913:debug		-std=c++17
 
 e20:s112:prof		e20:s112:prof		e20:s112:prof		e20		e20:p392:prof		-std=c++17
 e20:s112:debug		e20:s112:debug		e20:s112:debug		e20		e20:p392:debug		-std=c++17
-
-c15:s122:prof		c15:s122:prof		c15:s122:prof		c15		c15:p3915:prof		-std=c++17
-c15:s122:debug		c15:s122:debug		c15:s122:debug		c15		c15:p3915:debug		-std=c++17
-c14:s122:prof		c14:s122:prof		c14:s122:prof		c14		c14:p3915:prof		-std=c++17
-c14:s122:debug		c14:s122:debug		c14:s122:debug		c14		c14:p3915:debug		-std=c++17
-
-c7:s118:prof		c7:s118:prof		c7:s118:prof		c7		c7:p3913:prof		-std=c++17
-c7:s118:debug		c7:s118:debug		c7:s118:debug		c7		c7:p3913:debug		-std=c++17
-
 c7:s112:prof		c7:s112:prof		c7:s112:prof		c7		c7:p392:prof		-std=c++17
 c7:s112:debug		c7:s112:debug		c7:s112:debug		c7		c7:p392:debug		-std=c++17
+
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
