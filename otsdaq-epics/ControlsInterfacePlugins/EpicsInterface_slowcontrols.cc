@@ -1227,7 +1227,7 @@ void EpicsInterface::dbSystemLogout()
 }
 
 //========================================================================================================================
-std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(const std::string& pvName)
+std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(const std::string& pvName, int startTime, int endTime)
 {
 	__GEN_COUT__ << "getChannelHistory() reached" << __E__;
 	std::vector<std::vector<std::string>> history;
@@ -1249,8 +1249,8 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(const st
 				                      "severity.name, smpl_per FROM channel, sample, status, severity WHERE "
 				                      "channel.channel_id = sample.channel_id AND sample.severity_id = "
 				                      "severity.severity_id  AND sample.status_id = status.status_id AND "
-				                      "channel.name = \'%s\' ORDER BY smpl_time desc LIMIT 10",
-				                      pvName.c_str());
+				                      "channel.name = \'%s\' AND smpl_time >= TO_TIMESTAMP(\'%d\') AND smpl_time < TO_TIMESTAMP(\'%d\') ORDER BY smpl_time desc",
+				                      pvName.c_str(), startTime, endTime);
 
 				res = PQexec(dcsArchiveDbConn, buffer);
 
@@ -1279,7 +1279,7 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(const st
 						}
 						row.append("\n");
 					}
-					__GEN_COUT__ << row << __E__;
+					__GEN_COUT__ << "getChannelHistory(): row from select: " << row << __E__;
 					PQclear(res);
 				}
 			}
