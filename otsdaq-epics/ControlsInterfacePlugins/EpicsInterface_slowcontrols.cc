@@ -1641,7 +1641,7 @@ void EpicsInterface::handleAlarmsForFSM(const std::string& fsmTransitionName, Co
 // Configure override for Epics
 void EpicsInterface::configure()
 {
-	return;  // skipping to see if this is to blame
+	//return;  // skipping to see if this is to blame
 
 	handleAlarmsForFSM("configure", getSelfNode().getNode("LinkToConfigureAlarmsToMonitorTable"));
 
