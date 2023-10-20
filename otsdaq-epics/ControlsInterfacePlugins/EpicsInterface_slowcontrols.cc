@@ -104,6 +104,12 @@ std::string EpicsInterface::getList(const std::string& format)
 	if(format == "JSON")
 	{
 		__GEN_COUT__ << "Getting list in JSON format! There are " << mapOfPVInfo_.size() << " pv's.";
+		if(mapOfPVInfo_.size() == 0 && loginErrorMsg_ != "")
+		{
+			__GEN_SS__ << "No PVs found and error message: " << loginErrorMsg_ << __E__;
+			__GEN_SS_THROW__;
+		}
+
 		// pvList = "{\"PVList\" : [";
 		pvList = "[";
 		for(auto it = mapOfPVInfo_.begin(); it != mapOfPVInfo_.end(); it++)
@@ -1138,6 +1144,7 @@ void EpicsInterface::dbSystemLogin()
 
 	if(PQstatus(dcsArchiveDbConn) == CONNECTION_BAD)
 	{
+		loginErrorMsg_ = "Unable to connect to the dcs_archive database!";
 		__GEN_COUT__ << "Unable to connect to the dcs_archive database!\n" << __E__;
 		PQfinish(dcsArchiveDbConn);
 	}
@@ -1167,6 +1174,7 @@ void EpicsInterface::dbSystemLogin()
 
 	if(PQstatus(dcsAlarmDbConn) == CONNECTION_BAD)
 	{
+		loginErrorMsg_ = "Unable to connect to the dcs_alarm database!";
 		__GEN_COUT__ << "Unable to connect to the dcs_alarm database!\n" << __E__;
 		PQfinish(dcsAlarmDbConn);
 	}
@@ -1196,6 +1204,7 @@ void EpicsInterface::dbSystemLogin()
 
 	if(PQstatus(dcsLogDbConn) == CONNECTION_BAD)
 	{
+		loginErrorMsg_ = "Unable to connect to the dcs_log database!";
 		__GEN_COUT__ << "Unable to connect to the dcs_log database!\n" << __E__;
 		PQfinish(dcsLogDbConn);
 	}

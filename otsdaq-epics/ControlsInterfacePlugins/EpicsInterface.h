@@ -176,6 +176,7 @@ class EpicsInterface : public SlowControlsVInterface
 	//  std::map<chid, std::string> mapOfPVs_;
 	std::map<std::string, PVInfo*> 			mapOfPVInfo_;
 	int                            			status_;
+	std::string 							loginErrorMsg_;
 };
 // clang-format on
 }  // namespace ots
