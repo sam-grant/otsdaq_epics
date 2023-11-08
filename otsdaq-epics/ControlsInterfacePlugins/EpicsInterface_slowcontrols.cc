@@ -1295,6 +1295,12 @@ std::vector<std::vector<std::string>> EpicsInterface::getChannelHistory(const st
 			catch(...)
 			{
 				__SS__ << "getChannelHistory(): FAILING GETTING DATA FROM ARCHIVER DATABASE!!! PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+				try	{ throw; } //one more try to printout extra info
+				catch(const std::exception &e)
+				{
+					ss << "Exception message: " << e.what();
+				}
+				catch(...){}
 				__SS_THROW__;
 			}
 		}
@@ -1411,6 +1417,12 @@ std::vector<std::vector<std::string>> EpicsInterface::getLastAlarms(const std::s
 		catch(...)
 		{
 			__SS__ << "getLastAlarms(): FAILING GETTING DATA FROM ARCHIVER DATABASE!!! PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+			try	{ throw; } //one more try to printout extra info
+			catch(const std::exception &e)
+			{
+				ss << "Exception message: " << e.what();
+			}
+			catch(...){}
 			__SS_THROW__;
 		}
 	}
@@ -1504,6 +1516,12 @@ std::vector<std::vector<std::string>> EpicsInterface::getAlarmsLog(const std::st
 		catch(...)
 		{
 			__SS__ << "getAlarmsLog(): FAILING GETTING DATA FROM ARCHIVER DATABASE!!! PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+			try	{ throw; } //one more try to printout extra info
+			catch(const std::exception &e)
+			{
+				ss << "Exception message: " << e.what();
+			}
+			catch(...){}
 			__SS_THROW__;
 		}
 	}
@@ -1927,6 +1945,12 @@ void EpicsInterface::configure()
 					{
 						__SS__ << "configure(): CHANNEL INSERT OR UPDATE INTO DATABASE FAILED!!! "
 						       << " PQ ERROR: " << PQresultErrorMessage(res) << __E__;
+						try	{ throw; } //one more try to printout extra info
+						catch(const std::exception &e)
+						{
+							ss << "Exception message: " << e.what();
+						}
+						catch(...){}
 						__SS_THROW__;
 					}
 				}
