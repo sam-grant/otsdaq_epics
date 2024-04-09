@@ -404,6 +404,17 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 	return;
 }
 
+void EpicsInterface::eventCallbackAlarm(struct event_handler_args eha)
+{
+	__COUT__ << " EpicsInterface::eventCallbackAlarm" << __E__;
+	// chid chid = eha.chid;
+	if(eha.status == ECA_NORMAL) {
+        __COUT__ << " EpicsInterface::eventCallbackAlarm: PV Name = " << ca_name(eha.chid) << __E__;
+        if(((EpicsInterface*)eha.usr)->newAlarmCallback_ != nullptr) ((EpicsInterface*)eha.usr)->newAlarmCallback_();
+	}
+	return;
+}
+
 void EpicsInterface::staticChannelCallbackHandler(struct connection_handler_args cha)
 {
 	__COUT__ << "webClientChannelCallbackHandler" << __E__;
@@ -752,6 +763,15 @@ void EpicsInterface::subscribeToChannel(const std::string& pvName, chtype /*subs
 	                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
 	       "EpicsInterface::subscribeToChannel() : ca_create_subscription "
 	       "dbf_type_to_DBR");
+	//SEVCHK(ca_create_subscription(dbf_type_to_DBR(mapOfPVInfo_.find(pvName)->second->channelType),
+	//                              1,
+	//                              mapOfPVInfo_.find(pvName)->second->channelID,
+	//                              DBE_ALARM,
+	//                              eventCallbackAlarm,
+	//                              this,
+	//                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
+	//       "EpicsInterface::subscribeToChannel() : ca_create_subscription "
+	//       "dbf_type_to_DBR");
 
 	SEVCHK(ca_create_subscription(DBR_STS_DOUBLE,
 	                              1,
@@ -762,12 +782,29 @@ void EpicsInterface::subscribeToChannel(const std::string& pvName, chtype /*subs
 	                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
 	       "EpicsInterface::subscribeToChannel() : ca_create_subscription "
 	       "DBR_STS_DOUBLE");
+	//SEVCHK(ca_create_subscription(DBR_STS_DOUBLE,
+	//                              1,
+	//                              mapOfPVInfo_.find(pvName)->second->channelID,
+	//                              DBE_ALARM,
+	//                              eventCallbackAlarm,
+	//                              this,
+	//                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
+	//       "EpicsInterface::subscribeToChannel() : ca_create_subscription "
+	//       "DBR_STS_DOUBLE");
 
 	SEVCHK(ca_create_subscription(DBR_CTRL_DOUBLE,
 	                              1,
 	                              mapOfPVInfo_.find(pvName)->second->channelID,
 	                              DBE_VALUE | DBE_ALARM | DBE_PROPERTY,
 	                              eventCallback,
+	                              this,
+	                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
+	       "EpicsInterface::subscribeToChannel() : ca_create_subscription");
+	SEVCHK(ca_create_subscription(DBR_CTRL_DOUBLE,
+	                              1,
+	                              mapOfPVInfo_.find(pvName)->second->channelID,
+	                              DBE_ALARM,
+	                              eventCallbackAlarm,
 	                              this,
 	                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
 	       "EpicsInterface::subscribeToChannel() : ca_create_subscription");
@@ -1602,9 +1639,17 @@ std::vector<std::vector<std::string>> EpicsInterface::checkAlarmNotifications()
 						__COUT__ << "checkAlarmNotifications() alarmToNotify: " << alarmToNotify.first << " not in PVs List!!!" << __E__;
 						continue;
 					}
+					// if no alarm is found for a channel, still put in the name to indicate that it was checked
+					if(alarmRow.size() < 1) {
+						alarmRow.push_back(alarmToNotify.second.getNode("AlarmChannelName").getValue<std::string>());
+					}
 					alarmRow.push_back(alarmToNotify.first);
 					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("WhoToNotify").getValue<std::string>());
 					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendEmail").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendSlackMessage").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("SlackURL").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendToScript").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("PathToScript").getValue<std::string>());
 					alarmRow.push_back(alarmsToNotifyGroup.first);
 					alarmReturn.push_back(alarmRow);
 				}
