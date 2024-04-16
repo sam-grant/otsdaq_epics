@@ -763,15 +763,6 @@ void EpicsInterface::subscribeToChannel(const std::string& pvName, chtype /*subs
 	                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
 	       "EpicsInterface::subscribeToChannel() : ca_create_subscription "
 	       "dbf_type_to_DBR");
-	//SEVCHK(ca_create_subscription(dbf_type_to_DBR(mapOfPVInfo_.find(pvName)->second->channelType),
-	//                              1,
-	//                              mapOfPVInfo_.find(pvName)->second->channelID,
-	//                              DBE_ALARM,
-	//                              eventCallbackAlarm,
-	//                              this,
-	//                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
-	//       "EpicsInterface::subscribeToChannel() : ca_create_subscription "
-	//       "dbf_type_to_DBR");
 
 	SEVCHK(ca_create_subscription(DBR_STS_DOUBLE,
 	                              1,
@@ -782,15 +773,6 @@ void EpicsInterface::subscribeToChannel(const std::string& pvName, chtype /*subs
 	                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
 	       "EpicsInterface::subscribeToChannel() : ca_create_subscription "
 	       "DBR_STS_DOUBLE");
-	//SEVCHK(ca_create_subscription(DBR_STS_DOUBLE,
-	//                              1,
-	//                              mapOfPVInfo_.find(pvName)->second->channelID,
-	//                              DBE_ALARM,
-	//                              eventCallbackAlarm,
-	//                              this,
-	//                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
-	//       "EpicsInterface::subscribeToChannel() : ca_create_subscription "
-	//       "DBR_STS_DOUBLE");
 
 	SEVCHK(ca_create_subscription(DBR_CTRL_DOUBLE,
 	                              1,
