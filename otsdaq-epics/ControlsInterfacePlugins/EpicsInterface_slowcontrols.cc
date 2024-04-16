@@ -1621,17 +1621,9 @@ std::vector<std::vector<std::string>> EpicsInterface::checkAlarmNotifications()
 						__COUT__ << "checkAlarmNotifications() alarmToNotify: " << alarmToNotify.first << " not in PVs List!!!" << __E__;
 						continue;
 					}
-					// if no alarm is found for a channel, still put in the name to indicate that it was checked
-					if(alarmRow.size() < 1) {
-						alarmRow.push_back(alarmToNotify.second.getNode("AlarmChannelName").getValue<std::string>());
-					}
 					alarmRow.push_back(alarmToNotify.first);
 					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("WhoToNotify").getValue<std::string>());
 					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendEmail").getValue<std::string>());
-					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendSlackMessage").getValue<std::string>());
-					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("SlackURL").getValue<std::string>());
-					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendToScript").getValue<std::string>());
-					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("PathToScript").getValue<std::string>());
 					alarmRow.push_back(alarmsToNotifyGroup.first);
 					alarmReturn.push_back(alarmRow);
 				}
