@@ -46,7 +46,9 @@ else()
     set(EPICS_INCLUDE_DIRS "${_cet_EPICS_include_dir};${_cet_EPICS_include_dir_compiler};${_cet_EPICS_include_dir}/os/Linux")
     set(EPICS_LIBRARY_DIR "${_cet_EPICS_dir}/lib/linux-x86_64")
     find_library( EPICS_LIBRARY NAMES ca PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+    get_filename_component(_cet_EPICS_CA_dir "${EPICS_LIBRARY}" PATH)
     find_library( EPICS_COM_LIBRARY NAMES Com PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+    get_filename_component(_cet_EPICS_COM_dir "${EPICS_COM_LIBRARY}" PATH)
   endif()
 endif()
 if (EPICS_FOUND)
@@ -54,16 +56,20 @@ if (EPICS_FOUND)
     add_library(EPICS::ca SHARED IMPORTED)
     set_target_properties(EPICS::ca PROPERTIES
       INTERFACE_INCLUDE_DIRECTORIES "${EPICS_INCLUDE_DIRS}"
+      IMPORTED_NO_SONAME TRUE
       IMPORTED_LOCATION "${EPICS_LIBRARY}"
       )
+      target_link_directories(EPICS::ca INTERFACE ${_cet_EPICS_CA_dir})
     set(EPICS_LIBRARY "EPICS::ca")
   endif()
   if (NOT TARGET EPICS::Com)
     add_library(EPICS::Com SHARED IMPORTED)
     set_target_properties(EPICS::Com PROPERTIES
       INTERFACE_INCLUDE_DIRECTORIES "${EPICS_INCLUDE_DIRS}"
+      IMPORTED_NO_SONAME TRUE
       IMPORTED_LOCATION "${EPICS_COM_LIBRARY}"
       )
+      target_link_directories(EPICS::Com INTERFACE ${_cet_EPICS_COM_dir})
     set(EPICS_COM_LIBRARY "EPICS::Com")
   endif()
   if (CETMODULES_CURRENT_PROJECT_NAME AND
@@ -83,6 +89,8 @@ find_package_handle_standard_args(EPICS ${_cet_EPICS_config_mode}
 unset(_cet_EPICS_FIND_REQUIRED)
 unset(_cet_EPICS_config_mode)
 unset(_cet_EPICS_dir)
+unset(_cet_EPICS_CA_dir)
+unset(_cet_EPICS_COM_dir)
 unset(_cet_EPICS_include_dir)
 unset(_cadef_h CACHE)
 
