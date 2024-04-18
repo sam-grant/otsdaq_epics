@@ -166,6 +166,7 @@ class EpicsInterface : public SlowControlsVInterface
 	void 									readPVRecord			(const std::string& pvName);
 	void 									debugConsole			(const std::string& pvName);
 	static void								eventCallback			(struct event_handler_args eha);
+	static void	     						eventCallbackAlarm	    (struct event_handler_args eha);
 	static void 							staticChannelCallbackHandler(struct connection_handler_args cha);
 	static void								accessRightsCallback	(struct access_rights_handler_args args);
 	static void 							printChidInfo			(chid chid, const std::string& message);

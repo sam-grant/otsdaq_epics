@@ -404,6 +404,17 @@ void EpicsInterface::eventCallback(struct event_handler_args eha)
 	return;
 }
 
+void EpicsInterface::eventCallbackAlarm(struct event_handler_args eha)
+{
+	__COUT__ << " EpicsInterface::eventCallbackAlarm" << __E__;
+	// chid chid = eha.chid;
+	if(eha.status == ECA_NORMAL) {
+        __COUT__ << " EpicsInterface::eventCallbackAlarm: PV Name = " << ca_name(eha.chid) << __E__;
+        if(((EpicsInterface*)eha.usr)->newAlarmCallback_ != nullptr) ((EpicsInterface*)eha.usr)->newAlarmCallback_();
+	}
+	return;
+}
+
 void EpicsInterface::staticChannelCallbackHandler(struct connection_handler_args cha)
 {
 	__COUT__ << "webClientChannelCallbackHandler" << __E__;
@@ -768,6 +779,14 @@ void EpicsInterface::subscribeToChannel(const std::string& pvName, chtype /*subs
 	                              mapOfPVInfo_.find(pvName)->second->channelID,
 	                              DBE_VALUE | DBE_ALARM | DBE_PROPERTY,
 	                              eventCallback,
+	                              this,
+	                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
+	       "EpicsInterface::subscribeToChannel() : ca_create_subscription");
+	SEVCHK(ca_create_subscription(DBR_CTRL_DOUBLE,
+	                              1,
+	                              mapOfPVInfo_.find(pvName)->second->channelID,
+	                              DBE_ALARM,
+	                              eventCallbackAlarm,
 	                              this,
 	                              &(mapOfPVInfo_.find(pvName)->second->eventID)),
 	       "EpicsInterface::subscribeToChannel() : ca_create_subscription");
