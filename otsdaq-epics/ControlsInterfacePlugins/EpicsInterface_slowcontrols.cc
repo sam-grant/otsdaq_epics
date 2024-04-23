@@ -1624,6 +1624,10 @@ std::vector<std::vector<std::string>> EpicsInterface::checkAlarmNotifications()
 					alarmRow.push_back(alarmToNotify.first);
 					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("WhoToNotify").getValue<std::string>());
 					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendEmail").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendSlackMessage").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("SlackURL").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("DoSendToScript").getValue<std::string>());
+					alarmRow.push_back(alarmsToNotifyGroup.second.getNode("PathToScript").getValue<std::string>());
 					alarmRow.push_back(alarmsToNotifyGroup.first);
 					alarmReturn.push_back(alarmRow);
 				}
